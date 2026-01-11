@@ -23,11 +23,14 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(seconds: 2),
     );
 
-    _fadeAnimation =
-        CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
     );
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.2,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _controller.forward();
   }
@@ -41,7 +44,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -50,7 +53,15 @@ class _SplashScreenState extends State<SplashScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/images/logo.jpeg', height: 120),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(60),
+                  child: Image.asset(
+                    'assets/images/logo.jpeg',
+                    height: 120,
+                    width: 120,
+                    fit: BoxFit.cover,
+                  ),
+                ),
                 const SizedBox(height: 20),
                 const Text(
                   "सत्-संग",
@@ -65,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen>
                 const Text(
                   "सत्-संग – अंतर में सत्य का जागरण",
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: Colors.black,
                     fontSize: 16,
                     letterSpacing: 1.2,
                   ),
