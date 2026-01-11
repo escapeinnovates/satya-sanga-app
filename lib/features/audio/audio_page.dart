@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'drive_service.dart';
-import 'audio_player_screen.dart';
+import 'audio_service.dart';
+import 'audio_player.dart';
 
 class BhajansScreen extends StatelessWidget {
   const BhajansScreen({super.key});

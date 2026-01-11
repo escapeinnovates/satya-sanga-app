@@ -5,15 +5,13 @@ import 'package:flutter/services.dart';
 import 'dart:math';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+
 import 'splash_screen.dart';
-import 'pages/playlist_page.dart';
-import 'drive_service.dart';
-import 'audio_player_screen.dart';
-import 'pages/shorts_page.dart';
-
-
-
-
+import 'features/playlist/playlist_page.dart'; // contains VideosPage
+import 'features/youtube_shorts/shorts_page.dart'; // contains ShortsPage
+import 'features/audio/audio_service.dart';
+import 'features/audio/audio_player.dart';
+import 'app_layout.dart';
 
 class LanguageNotifier extends ChangeNotifier {
   Locale _currentLocale = const Locale('en');
@@ -38,8 +36,31 @@ void main() {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initApp();
+  }
+
+  Future<void> _initApp() async {
+    await Future.delayed(const Duration(seconds: 4));
+
+    if (mounted) {
+      setState(() {
+        _ready = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,125 +73,18 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       locale: languageNotifier.currentLocale,
-      supportedLocales: const [
-        Locale('en', ''), // English
-        Locale('hi', ''), // Hindi
-      ],
+      supportedLocales: const [Locale('en', ''), Locale('hi', '')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: SplashScreen(),
-
+      home: _ready
+          ? AppLayout(
+              pages: [HomeScreen(), VideosPage(), AudioPage(), ShortsPage()],
+            )
+          : const SplashScreen(),
     );
-  }
-}
-
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
-
-  static final List<Widget> _widgetOptions = <Widget>[
-    const HomeScreen(),
-     VideosPage(),
-    const AudioPage(),
-    ShortsPage(),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final languageNotifier = Provider.of<LanguageNotifier>(context);
-
-    return Scaffold(
-      appBar: AppBar(
-       backgroundColor: Colors.orange.shade800,
-title: Row(
-  children: [
-    CircleAvatar(
-      radius: 16, // controls size
-      backgroundImage: const AssetImage('assets/logo.jpeg'),
-      backgroundColor: Colors.transparent,
-    ),
-            const SizedBox(width: 10),
-            Text(
-              languageNotifier.currentLocale.languageCode == 'en'
-                  ? 'Satya Sang'
-                  : 'सत्य संग',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        centerTitle: true,
-        actions: [
-  IconButton(
-    onPressed: () {
-      languageNotifier.toggleLanguage();
-    },
-    icon: Image.asset(
-      'assets/icons/lang_icon.png',
-      width: 24,
-      height: 24,
-    ),
-  ),
-],
-        
-      ),
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
-      ),
-     bottomNavigationBar: BottomNavigationBar(
-  type: BottomNavigationBarType.fixed,
-  showSelectedLabels: true,
-  showUnselectedLabels: true,
-
-  currentIndex: _selectedIndex,
-  selectedItemColor: Colors.orange.shade800,
-  unselectedItemColor: Colors.black54,
-
-  onTap: _onItemTapped,
-
-  items: [
-    BottomNavigationBarItem(
-      icon: const Icon(Icons.home),
-      label: languageNotifier.currentLocale.languageCode == 'en'
-          ? 'Home'
-          : 'होम',
-    ),
-    BottomNavigationBarItem(
-      icon: const Icon(Icons.video_library),
-      label: languageNotifier.currentLocale.languageCode == 'en'
-          ? 'Videos'
-          : 'वीडियो',
-    ),
-    BottomNavigationBarItem(
-      icon: const Icon(Icons.music_note),
-      label: languageNotifier.currentLocale.languageCode == 'en'
-          ? 'Audio'
-          : 'ऑडियो',
-    ),
-    BottomNavigationBarItem(
-      icon: const Icon(Icons.play_circle_fill),
-      label: languageNotifier.currentLocale.languageCode == 'en'
-          ? 'Shorts'
-          : 'शॉर्ट्स',
-    ),
-  ],
-)
-    );
-
   }
 }
 
@@ -191,8 +105,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> loadQuote() async {
-    final String response =
-        await rootBundle.loadString('assets/daily_quotes.json');
+    final String response = await rootBundle.loadString(
+      'assets/daily_quotes.json',
+    );
     final data = json.decode(response);
 
     final List<dynamic> quotes = data['quotes'];
@@ -205,16 +120,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-     final languageNotifier = Provider.of<LanguageNotifier>(context);
+    final languageNotifier = Provider.of<LanguageNotifier>(context);
     return Column(
       children: [
         const SizedBox(height: 40),
         Center(
           child: Container(
             width: 400,
-            constraints: const BoxConstraints(
-              minHeight: 220,
-            ),
+            constraints: const BoxConstraints(minHeight: 220),
             child: Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
@@ -227,8 +140,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       languageNotifier.currentLocale.languageCode == 'en'
-                  ? 'Aaj Ka Shubh Vichar'
-                  : "आज का शुभ विचार",
+                          ? 'Aaj Ka Shubh Vichar'
+                          : "आज का शुभ विचार",
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -266,27 +179,26 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.black26,
         ),
         const SizedBox(height: 20),
-       SectionCard(
-  title: languageNotifier.currentLocale.languageCode == 'en'
-      ? 'Guruvandana'
-      : 'गुरुवंदना',
-  icon: Icons.book_online,
-),
+        SectionCard(
+          title: languageNotifier.currentLocale.languageCode == 'en'
+              ? 'Guruvandana'
+              : 'गुरुवंदना',
+          icon: Icons.book_online,
+        ),
 
-SectionCard(
-  title: languageNotifier.currentLocale.languageCode == 'en'
-      ? 'Hanuman Chalisa'
-      : 'हनुमान चालीसा',
-  icon: Icons.military_tech,
-),
+        SectionCard(
+          title: languageNotifier.currentLocale.languageCode == 'en'
+              ? 'Hanuman Chalisa'
+              : 'हनुमान चालीसा',
+          icon: Icons.military_tech,
+        ),
 
-SectionCard(
-  title: languageNotifier.currentLocale.languageCode == 'en'
-      ? 'Bhajans'
-      : 'भजन',
-  icon: Icons.music_note,
-),
-
+        SectionCard(
+          title: languageNotifier.currentLocale.languageCode == 'en'
+              ? 'Bhajans'
+              : 'भजन',
+          icon: Icons.music_note,
+        ),
       ],
     );
   }
@@ -311,16 +223,10 @@ class SectionCard extends StatelessWidget {
       },
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         elevation: 3,
         child: ListTile(
-          leading: Icon(
-            icon,
-            size: 40,
-            color: Colors.orange.shade800,
-          ),
+          leading: Icon(icon, size: 40, color: Colors.orange.shade800),
           title: Text(
             title,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -387,74 +293,73 @@ class _SectionDetailPageState extends State<SectionDetailPage> {
       body: section == null
           ? Center(child: Text(content))
           : section.containsKey('subsections')
-              ? ListView.builder(
-                  itemCount: section['subsections'].length,
-                  itemBuilder: (context, index) {
-                    var subsection = section['subsections'][index];
-                    return ListTile(
-                      title: Text(subsection['title']),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                SectionDetailPage(title: subsection['title']),
-                          ),
-                        );
-                      },
+          ? ListView.builder(
+              itemCount: section['subsections'].length,
+              itemBuilder: (context, index) {
+                var subsection = section['subsections'][index];
+                return ListTile(
+                  title: Text(subsection['title']),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SectionDetailPage(title: subsection['title']),
+                      ),
                     );
                   },
-                )
-              : Column(
-                  children: [
-                    // 🔍 ZOOM SLIDER (TOP)
-                    Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12),
-                      color: Colors.orange.shade50,
-                      child: Row(
-                        children: [
-                          const Icon(Icons.zoom_out),
-                          Expanded(
-                            child: Slider(
-                              min: 14,
-                              max: 36,
-                              divisions: 22,
-                              value: _fontSize,
-                              onChanged: (value) {
-                                setState(() {
-                                  _fontSize = value;
-                                });
-                              },
-                            ),
-                          ),
-                          const Icon(Icons.zoom_in),
-                        ],
-                      ),
-                    ),
-
-                    // 📜 TEXT CONTENT
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          content,
-                          style: TextStyle(
-                            fontSize: _fontSize,
-                            height: 1.8,
-                            fontFamily: 'NotoSansDevanagari',
-                          ),
-                          textAlign: TextAlign.center,
+                );
+              },
+            )
+          : Column(
+              children: [
+                // 🔍 ZOOM SLIDER (TOP)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  color: Colors.orange.shade50,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.zoom_out),
+                      Expanded(
+                        child: Slider(
+                          min: 14,
+                          max: 36,
+                          divisions: 22,
+                          value: _fontSize,
+                          onChanged: (value) {
+                            setState(() {
+                              _fontSize = value;
+                            });
+                          },
                         ),
                       ),
-                    ),
-                  ],
+                      const Icon(Icons.zoom_in),
+                    ],
+                  ),
                 ),
+
+                // 📜 TEXT CONTENT
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      content,
+                      style: TextStyle(
+                        fontSize: _fontSize,
+                        height: 1.8,
+                        fontFamily: 'NotoSansDevanagari',
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
 
- class AudioPage extends StatelessWidget {
+class AudioPage extends StatelessWidget {
   const AudioPage({super.key});
 
   @override
@@ -502,9 +407,3 @@ class _SectionDetailPageState extends State<SectionDetailPage> {
     );
   }
 }
-
-
-
-
-
-

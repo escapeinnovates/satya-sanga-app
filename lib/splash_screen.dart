@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'main.dart'; // This gives access to HomePage
+// only if you still need HomeScreen/AudioPage from here
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -31,14 +30,6 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
-
-    // Wait 3 seconds, then navigate to HomePage
-    Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    });
   }
 
   @override
@@ -50,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Netflix-style dark
+      backgroundColor: Colors.black,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -59,11 +50,7 @@ class _SplashScreenState extends State<SplashScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Your app logo
-                Image.asset(
-                  'assets/logo.jpeg', // Make sure this image exists
-                  height: 120,
-                ),
+                Image.asset('assets/logo.jpeg', height: 120),
                 const SizedBox(height: 20),
                 const Text(
                   "सत्-संग",

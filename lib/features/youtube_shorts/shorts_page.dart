@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../services/youtube_service.dart';
+import './shorts_service.dart';
 
 class ShortsPage extends StatefulWidget {
   const ShortsPage({super.key});
