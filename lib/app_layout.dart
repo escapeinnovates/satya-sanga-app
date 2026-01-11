@@ -58,7 +58,7 @@ class _AppLayoutState extends State<AppLayout> {
           children: [
             const CircleAvatar(
               radius: 16,
-              backgroundImage: AssetImage('assets/logo.jpeg'),
+              backgroundImage: AssetImage('assets/images/logo.jpeg'),
               backgroundColor: Colors.transparent,
             ),
             const SizedBox(width: 10),

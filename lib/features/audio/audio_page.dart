@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'audio_service.dart';
 import 'audio_player.dart';
 
-class BhajansScreen extends StatelessWidget {
-  const BhajansScreen({super.key});
+class AudioPage extends StatelessWidget {
+  const AudioPage({super.key});
 
   @override
   Widget build(BuildContext context) {

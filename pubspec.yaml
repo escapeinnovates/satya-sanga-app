@@ -49,6 +49,8 @@ dependencies:
   
   youtube_player_flutter: ^9.0.0
   package_info_plus: ^9.0.0
+  syncfusion_flutter_pdfviewer: ^32.1.22
+
 
 dev_dependencies:
   flutter_test:
@@ -71,10 +73,10 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/logo.jpeg
-    - assets/sections.json
+    - assets/images/logo.jpeg
     - assets/daily_quotes.json
     - assets/icons/lang_icon.png
+    - assets/read/guru_vandana.pdf
 
   fonts:
     - family: Jersey
@@ -89,13 +91,13 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/logo1.png"
+  image_path: "assets/images/logo1.png"
 
 
 
 # 👇 This must be at the root level, NOT under flutter
 flutter_native_splash:
-  color: "#000000"
-  image: assets/logo.jpeg
+  color: "#FFFFFF"
+  image: assets/images/logo.jpeg
   android: true
   ios: true
