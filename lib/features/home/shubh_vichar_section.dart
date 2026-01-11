@@ -7,50 +7,66 @@ class ShubhVicharSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Transform.translate(
-      offset: const Offset(0, -70), // pulls card into banner
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: const [
-            BoxShadow(color: Colors.black26, blurRadius: 12),
-          ],
-        ),
-        child: Column(
+    return Column(
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
           children: [
-            // Quote icon (half in banner, half in card)
-            Container(
-              height: 50,
-              width: 50,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(color: Colors.black26, blurRadius: 6),
-                ],
-              ),
-              child: const Icon(
-                Icons.format_quote,
-                size: 28,
-                color: Colors.teal,
-              ),
+            // 🌿 Banner image
+            Image.asset(
+              "assets/images/shubh_vichar.jpeg",
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
             ),
-            const SizedBox(height: 12),
-            Text(
-              quote,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
-                height: 1.5,
-                fontWeight: FontWeight.w500,
+
+            // 🔵 Quote icon (half on image, half on white area)
+            Positioned(
+              bottom: -20,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  height: 50,
+                  width: 50,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 20,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.format_quote,
+                    size: 30,
+                    color: Colors.teal,
+                  ),
+                ),
               ),
             ),
           ],
         ),
-      ),
+
+        // 🧾 White text section (no box, no shadow)
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(24, 40, 24, 30),
+          color: Colors.white,
+          child: Text(
+            quote,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 20,
+              height: 1.6,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

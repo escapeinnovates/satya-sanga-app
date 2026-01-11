@@ -77,6 +77,7 @@ flutter:
     - assets/daily_quotes.json
     - assets/icons/lang_icon.png
     - assets/read/guru_vandana.pdf
+    - assets/images/shubh_vichar.jpeg
 
   fonts:
     - family: Jersey
