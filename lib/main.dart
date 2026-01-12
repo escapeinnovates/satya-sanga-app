@@ -11,6 +11,7 @@ import 'features/youtube_shorts/shorts_page.dart'; // contains ShortsPage
 import 'features/audio/audio_page.dart';
 import 'app_layout.dart';
 import 'features/home/home_page.dart';
+import 'features/read/read_page.dart';
 
 
 
@@ -82,7 +83,7 @@ class _MyAppState extends State<MyApp> {
       ],
       home: _ready
           ? AppLayout(
-              pages: [HomeScreen(), VideosPage(), AudioPage(), ShortsPage()],
+              pages: [HomeScreen(), VideosPage(), AudioPage(), ShortsPage(), ReadPage()],
             )
           : const SplashScreen(),
     );

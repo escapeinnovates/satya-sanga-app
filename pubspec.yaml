@@ -78,6 +78,10 @@ flutter:
     - assets/icons/lang_icon.png
     - assets/read/guru_vandana.pdf
     - assets/images/shubh_vichar.jpeg
+    - assets/images/guru_vandana.jpeg
+    - assets/images/hanuman.jpg
+    - assets/read/hanuman.pdf
+
 
   fonts:
     - family: Jersey

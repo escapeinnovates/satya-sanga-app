@@ -48,11 +48,11 @@ class _AppLayoutState extends State<AppLayout> {
       appBar: AppBar(
         backgroundColor: Colors.orange.shade800,
         leading: _overridePage != null
-    ? IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: closeOverride,
-      )
-    : null,
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: closeOverride,
+              )
+            : null,
 
         title: Row(
           children: [
@@ -116,9 +116,14 @@ class _AppLayoutState extends State<AppLayout> {
                       ? 'Shorts'
                       : 'शॉर्ट्स',
                 ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.book),
+                  label: languageNotifier.currentLocale.languageCode == 'en'
+                      ? 'Read'
+                      : 'रीड',
+                ),
               ],
             ),
-            
     );
   }
 }
