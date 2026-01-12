@@ -23,74 +23,69 @@ class VideosPage extends StatelessWidget {
           return const Center(child: Text("No playlists found"));
         }
 
-        return GridView.builder(
-          padding: const EdgeInsets.all(10),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 0.9,
-          ),
-          itemCount: playlists.length,
-          itemBuilder: (context, index) {
-            final p = playlists[index]['snippet'];
-            final playlistId = playlists[index]['id'];
-            final thumbnail = p['thumbnails']['medium']['url'];
-            final title = p['title'];
-            final count = playlists[index]['contentDetails']['itemCount'];
+        return Container(
+          color: Colors.white,
+          child: GridView.builder(
+            padding: const EdgeInsets.all(10),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.1,
+            ),
+            itemCount: playlists.length,
+            itemBuilder: (context, index) {
+              final p = playlists[index]['snippet'];
+              final playlistId = playlists[index]['id'];
+              final thumbnail = p['thumbnails']['medium']['url'];
+              final title = p['title'];
+              final count =
+                  playlists[index]['contentDetails']['itemCount'];
 
-            return GestureDetector(
-              onTap: () {
-                AppLayout.of(
-                  context,
-                ).open(YoutubePlaylistPage(playlistId: playlistId));
-              },
-
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Stack(
+              return GestureDetector(
+                onTap: () {
+                  AppLayout.of(context).open(
+                    YoutubePlaylistPage(playlistId: playlistId),
+                  );
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Positioned.fill(
-                      child: Image.network(thumbnail, fit: BoxFit.cover),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        height: 60,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [
-                              Colors.black.withOpacity(0.75),
-                              Colors.transparent,
-                            ],
-                          ),
+                    AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: Image.network(
+                          thumbnail,
+                          fit: BoxFit.cover,
                         ),
                       ),
                     ),
-                    Positioned(
-                      bottom: 8,
-                      left: 8,
-                      right: 8,
-                      child: Text(
-                        "$title • $count videos",
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    const SizedBox(height: 6),
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                        height: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "$count videos",
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.black54,
                       ),
                     ),
                   ],
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
     );
