@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:satya_sang/features/audio/audio_folder_page.dart';
 import 'audio_service.dart';
 import 'audio_player.dart';
 
@@ -38,17 +39,33 @@ class AudioPage extends StatelessWidget {
                 elevation: 4,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AudioPlayerScreen(
-                          title: audio['name'],
-                          fileId: audio['id'],
-                        ),
-                      ),
-                    );
-                  },
+                 onTap: () {
+  final isFolder =
+      audio['mimeType'] == 'application/vnd.google-apps.folder';
+
+  if (isFolder) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AudioFolderPage(
+          folderId: audio['id'],
+          folderName: audio['name'],
+        ),
+      ),
+    );
+  } else {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AudioPlayerScreen(
+          title: audio['name'],
+          fileId: audio['id'],
+        ),
+      ),
+    );
+  }
+},
+
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                         vertical: 12, horizontal: 16),
