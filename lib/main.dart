@@ -13,8 +13,6 @@ import 'app_layout.dart';
 import 'features/home/home_page.dart';
 import 'features/read/read_page.dart';
 
-
-
 class LanguageNotifier extends ChangeNotifier {
   Locale _currentLocale = const Locale('en');
 
@@ -81,13 +79,41 @@ class _MyAppState extends State<MyApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+
+      builder: (context, child) {
+        return Stack(
+          children: [
+            child!,
+
+            // 🌐 Global language button
+            Positioned(
+              bottom: 120,
+              right: 16,
+              child: FloatingActionButton(
+                onPressed: languageNotifier.toggleLanguage,
+                backgroundColor: Colors.white,
+                child: Image.asset(
+                  'assets/icons/lang_icon.png',
+                  width: 26,
+                  height: 26,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+
       home: _ready
           ? AppLayout(
-              pages: [HomeScreen(), VideosPage(), AudioPage(), ShortsPage(), ReadPage()],
+              pages: [
+                HomeScreen(),
+                VideosPage(),
+                AudioPage(),
+                ShortsPage(),
+                ReadPage(),
+              ],
             )
           : const SplashScreen(),
     );
   }
 }
-
-

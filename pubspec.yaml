@@ -81,6 +81,7 @@ flutter:
     - assets/images/guru_vandana.jpeg
     - assets/images/hanuman.jpg
     - assets/read/hanuman.pdf
+    - assets/images/banner.jpg
 
 
   fonts:

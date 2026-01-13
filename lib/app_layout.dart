@@ -10,8 +10,8 @@ class AppLayout extends StatefulWidget {
   // Allows child widgets to access AppLayout state
   // Used when opening full screen pages like PDF Viewer
   static _AppLayoutState of(BuildContext context) {
-    final _AppLayoutState? state =
-        context.findAncestorStateOfType<_AppLayoutState>();
+    final _AppLayoutState? state = context
+        .findAncestorStateOfType<_AppLayoutState>();
     assert(state != null, 'AppLayout not found in widget tree');
     return state!;
   }
@@ -21,8 +21,8 @@ class AppLayout extends StatefulWidget {
 }
 
 class _AppLayoutState extends State<AppLayout> {
-  int _selectedIndex = 0;     // Which bottom tab is selected
-  Widget? _overridePage;     // Used when opening pages over the main layout
+  int _selectedIndex = 0; // Which bottom tab is selected
+  Widget? _overridePage; // Used when opening pages over the main layout
 
   // Opens a page on top of bottom navigation (e.g., PDF, video player)
   void open(Widget page) {
@@ -70,9 +70,7 @@ class _AppLayoutState extends State<AppLayout> {
               child: Icon(
                 icon,
                 size: 26,
-                color: selected
-                    ? Colors.orange.shade800
-                    : Colors.black54,
+                color: selected ? Colors.orange.shade800 : Colors.black54,
               ),
             ),
 
@@ -84,9 +82,7 @@ class _AppLayoutState extends State<AppLayout> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: selected
-                    ? Colors.orange.shade800
-                    : Colors.black54,
+                color: selected ? Colors.orange.shade800 : Colors.black54,
               ),
               child: Text(label),
             ),
@@ -103,54 +99,109 @@ class _AppLayoutState extends State<AppLayout> {
 
     return Scaffold(
       // 🔶 App bar at the top
+      // appBar: AppBar(
+      //   backgroundColor: Colors.orange.shade800,
+
+      //   // Back button appears only when an override page is open
+      //   leading: _overridePage != null
+      //       ? IconButton(
+      //           icon: const Icon(Icons.arrow_back),
+      //           onPressed: closeOverride,
+      //         )
+      //       : null,
+
+      //   // App logo + name
+      //   title: Row(
+      //     children: [
+      //       const CircleAvatar(
+      //         radius: 16,
+      //         backgroundImage: AssetImage('assets/images/logo.jpeg'),
+      //       ),
+      //       const SizedBox(width: 10),
+      //       Text(
+      //         languageNotifier.currentLocale.languageCode == 'en'
+      //             ? 'Satya Sang'
+      //             : 'सत्य संग',
+      //         style: const TextStyle(fontWeight: FontWeight.bold),
+      //       ),
+      //     ],
+      //   ),
+      //   centerTitle: true,
+
+      //   // Language toggle button
+      //   actions: [
+      //     IconButton(
+      //       onPressed: languageNotifier.toggleLanguage,
+      //       icon: Image.asset(
+      //         'assets/icons/lang_icon.png',
+      //         width: 24,
+      //         height: 24,
+      //       ),
+      //     ),
+      //   ],
+      // ),
       appBar: AppBar(
-        backgroundColor: Colors.orange.shade800,
+        toolbarHeight: 70,
+        elevation: 0,
+        backgroundColor: Colors.black,
+        automaticallyImplyLeading: false,
 
-        // Back button appears only when an override page is open
-        leading: _overridePage != null
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: closeOverride,
-              )
-            : null,
+        flexibleSpace: SafeArea(
+          bottom: false,
+          child: Stack(
+            children: [
+              // Background banner
+              SizedBox.expand(
+                child: Image.asset(
+                  'assets/images/banner.jpg',
+                  fit: BoxFit.cover,
+                ),
+              ),
 
-        // App logo + name
-        title: Row(
-          children: [
-            const CircleAvatar(
-              radius: 16,
-              backgroundImage: AssetImage('assets/images/logo.jpeg'),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              languageNotifier.currentLocale.languageCode == 'en'
-                  ? 'Satya Sang'
-                  : 'सत्य संग',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        centerTitle: true,
-
-        // Language toggle button
-        actions: [
-          IconButton(
-            onPressed: languageNotifier.toggleLanguage,
-            icon: Image.asset(
-              'assets/icons/lang_icon.png',
-              width: 24,
-              height: 24,
-            ),
+              // Translate button (top-right)
+              // Positioned(
+              //   bottom: 9,
+              //   right: 0,
+              //   child: IconButton(
+              //     onPressed: languageNotifier.toggleLanguage,
+              //     icon: Image.asset(
+              //       'assets/icons/lang_icon.png',
+              //       width: 26,
+              //       height: 26,
+              //     ),
+              //   ),
+              // ),
+              if (_overridePage != null)
+                Positioned(
+                  bottom: 9,
+                  left: 0,
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: closeOverride,
+                      child: const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: Colors.red,
+                          size: 28,
+                          weight: 900,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ],
+        ),
       ),
 
       // Keeps all pages alive → prevents reload lag
-      body: _overridePage ??
-          IndexedStack(
-            index: _selectedIndex,
-            children: widget.pages,
-          ),
+      body:
+          _overridePage ??
+          IndexedStack(index: _selectedIndex, children: widget.pages),
 
       // Floating bottom navigation bar
       bottomNavigationBar: _overridePage != null
@@ -174,31 +225,41 @@ class _AppLayoutState extends State<AppLayout> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _navItem(Icons.home,
-                      languageNotifier.currentLocale.languageCode == 'en'
-                          ? 'Home'
-                          : 'होम',
-                      0),
-                  _navItem(Icons.video_library_outlined,
-                      languageNotifier.currentLocale.languageCode == 'en'
-                          ? 'Video'
-                          : 'वीडियो',
-                      1),
-                  _navItem(Icons.music_note_outlined,
-                      languageNotifier.currentLocale.languageCode == 'en'
-                          ? 'Audio'
-                          : 'ऑडियो',
-                      2),
-                  _navItem(Icons.play_circle_outline,
-                      languageNotifier.currentLocale.languageCode == 'en'
-                          ? 'Shorts'
-                          : 'शॉर्ट्स',
-                      3),
-                  _navItem(Icons.menu_book_outlined,
-                      languageNotifier.currentLocale.languageCode == 'en'
-                          ? 'Read'
-                          : 'रीड',
-                      4),
+                  _navItem(
+                    Icons.home,
+                    languageNotifier.currentLocale.languageCode == 'en'
+                        ? 'Home'
+                        : 'होम',
+                    0,
+                  ),
+                  _navItem(
+                    Icons.video_library_outlined,
+                    languageNotifier.currentLocale.languageCode == 'en'
+                        ? 'Video'
+                        : 'वीडियो',
+                    1,
+                  ),
+                  _navItem(
+                    Icons.music_note_outlined,
+                    languageNotifier.currentLocale.languageCode == 'en'
+                        ? 'Audio'
+                        : 'ऑडियो',
+                    2,
+                  ),
+                  _navItem(
+                    Icons.play_circle_outline,
+                    languageNotifier.currentLocale.languageCode == 'en'
+                        ? 'Shorts'
+                        : 'शॉर्ट्स',
+                    3,
+                  ),
+                  _navItem(
+                    Icons.menu_book_outlined,
+                    languageNotifier.currentLocale.languageCode == 'en'
+                        ? 'Read'
+                        : 'रीड',
+                    4,
+                  ),
                 ],
               ),
             ),
