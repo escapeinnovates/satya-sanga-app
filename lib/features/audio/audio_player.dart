@@ -60,105 +60,142 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     return '$minutes:$seconds';
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text(
-          "Now Playing",
-          style: TextStyle(color: Colors.black),
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.grey.shade100,
+    body: Column(
+      children: [
+        // 🔥 Satya Sang banner at top
+        satyaSangBanner(),
+
+        // 🔥 Audio Player UI
+        Expanded(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+
+                  // 🎵 Album Art
+                  Card(
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Container(
+                      height: 250,
+                      width: 250,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.music_note,
+                        size: 120,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // 🎶 Title
+                  Text(
+                    widget.title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ⏱ Slider
+                  Slider(
+                    activeColor: Colors.black,
+                    inactiveColor: Colors.grey.shade300,
+                    min: 0,
+                    max: _duration.inSeconds.toDouble(),
+                    value: _position.inSeconds
+                        .clamp(0, _duration.inSeconds)
+                        .toDouble(),
+                    onChanged: (value) {
+                      _player.seek(Duration(seconds: value.toInt()));
+                    },
+                  ),
+
+                  // ⏰ Time
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(formatTime(_position)),
+                      Text(formatTime(_duration)),
+                    ],
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // ▶️ Play / Pause
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.black,
+                    child: IconButton(
+                      iconSize: 50,
+                      color: Colors.white,
+                      icon: Icon(
+                        isPlaying ? Icons.pause : Icons.play_arrow,
+                      ),
+                      onPressed: () {
+                        isPlaying ? _player.pause() : _player.play();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget satyaSangBanner() {
+  return Stack(
+    children: [
+      // 🌼 Banner Image
+      SizedBox(
+        height: 70,
+        width: double.infinity,
+        child: Image.asset(
+          "assets/images/banner.jpg",
+          fit: BoxFit.cover,
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
 
-            // 🎵 Album Art
-            Card(
-              elevation: 6,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Container(
-                height: 250,
-                width: 250,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  Icons.music_note,
-                  size: 120,
-                  color: Colors.black,
-                ),
-              ),
+      // 🔴 Floating Back Button (NO SHADOW)
+      Positioned(
+        left: 12,
+        top: 18,
+        child: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            width: 36,
+            height: 36,
+          
+            child: const Icon(
+              Icons.arrow_back,
+              color: Colors.red,
+              size: 22,
             ),
-
-            const SizedBox(height: 30),
-
-            // 🎶 Title
-            Text(
-              widget.title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // ⏱ Slider
-            Slider(
-              activeColor: Colors.black,
-              inactiveColor: Colors.grey.shade300,
-              min: 0,
-              max: _duration.inSeconds.toDouble(),
-              value: _position.inSeconds
-                  .clamp(0, _duration.inSeconds)
-                  .toDouble(),
-              onChanged: (value) {
-                _player.seek(Duration(seconds: value.toInt()));
-              },
-            ),
-
-            // ⏰ Time
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(formatTime(_position)),
-                Text(formatTime(_duration)),
-              ],
-            ),
-
-            const SizedBox(height: 30),
-
-            // ▶️ Play / Pause (BLACK BUTTON)
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.black,
-              child: IconButton(
-                iconSize: 50,
-                color: Colors.white,
-                icon: Icon(
-                  isPlaying ? Icons.pause : Icons.play_arrow,
-                ),
-                onPressed: () {
-                  isPlaying ? _player.pause() : _player.play();
-                },
-              ),
-            ),
-          ],
+          ),
         ),
       ),
-    );
-  }
+    ],
+  );
+}
 }

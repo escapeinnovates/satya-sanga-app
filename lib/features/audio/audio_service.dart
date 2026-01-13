@@ -43,13 +43,17 @@ class DriveService {
   // 🔹 Load contents of any folder (when user opens a folder)
   static Future<List<dynamic>> fetchFolderItems(String folderId) async {
     try {
-      final url = Uri.parse(
-        "https://www.googleapis.com/drive/v3/files"
-        "?q='$folderId'+in+parents+and+(mimeType+contains+'audio/'+or+mimeType='application/vnd.google-apps.folder')"
-        "&fields=files(id,name,mimeType,size)"
-        "&orderBy=folder,name"
-        "&key=${DriveConfig.apiKey}",
-      );
+     final url = Uri.parse(
+  "https://www.googleapis.com/drive/v3/files"
+  "?q='$folderId'+in+parents"
+  "&corpora=allDrives"
+  "&supportsAllDrives=true"
+  "&includeItemsFromAllDrives=true"
+  "&fields=files(id,name,mimeType,size)"
+  "&orderBy=folder,name"
+  "&key=${DriveConfig.apiKey}",
+);
+
 
       final response = await http.get(url);
 
