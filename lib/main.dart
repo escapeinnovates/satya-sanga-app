@@ -13,6 +13,9 @@ import 'app_layout.dart';
 import 'features/home/home_page.dart';
 import 'features/read/read_page.dart';
 
+final GlobalKey<ShortsPageState> shortsKey =
+    GlobalKey<ShortsPageState>();
+
 class LanguageNotifier extends ChangeNotifier {
   Locale _currentLocale = const Locale('en');
 
@@ -67,6 +70,7 @@ class _MyAppState extends State<MyApp> {
     final languageNotifier = Provider.of<LanguageNotifier>(context);
 
     return MaterialApp(
+      
       title: 'Bhakti App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
@@ -109,7 +113,7 @@ class _MyAppState extends State<MyApp> {
                 HomeScreen(),
                 VideosPage(),
                 AudioPage(),
-                ShortsPage(),
+                ShortsPage(key: shortsKey),
                 ReadPage(),
               ],
             )
@@ -117,3 +121,4 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+

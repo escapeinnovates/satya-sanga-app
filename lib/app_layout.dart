@@ -4,6 +4,7 @@ import 'main.dart'; // Used to get LanguageNotifier for language toggle
 
 class AppLayout extends StatefulWidget {
   final List<Widget> pages; // List of pages: Home, Video, Audio, Shorts, Read
+  
 
   const AppLayout({super.key, required this.pages});
 
@@ -40,10 +41,23 @@ class _AppLayoutState extends State<AppLayout> {
 
   // Called when user taps any bottom bar icon
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index; // Changes the active tab
-    });
+  // Leaving Shorts → pause
+  if (_selectedIndex == 3 && index != 3) {
+    shortsKey.currentState?.pauseAllVideos();
   }
+
+  setState(() {
+    _selectedIndex = index;
+  });
+
+  // Returning to Shorts → auto-play current short
+ if (_selectedIndex == 3 && index != 3) {
+  shortsKey.currentState?.pauseAllVideos();
+}
+  }
+
+
+
 
   // Builds one navigation item (icon + text)
   // This widget is reused for all 5 tabs

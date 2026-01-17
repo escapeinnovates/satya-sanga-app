@@ -44,29 +44,27 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   @override
   Widget build(BuildContext context) {
-        final languageNotifier = Provider.of<LanguageNotifier>(context);
+        
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.orange.shade800,
-        iconTheme: const IconThemeData(color: Colors.black),
-        title: Row(
-          children: [
-            const CircleAvatar(
-              radius: 16,
-              backgroundImage: AssetImage('assets/images/logo.jpeg'),
-              backgroundColor: Colors.transparent,
-            ),
-            const SizedBox(width: 10),
-            Text(
-              languageNotifier.currentLocale.languageCode == 'en'
-                  ? 'Satya Sang'
-                  : 'सत्य संग',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
+     appBar: AppBar(
+  toolbarHeight: 70, // adjust height if needed
+  elevation: 0,
+  backgroundColor: Colors.transparent,
+  automaticallyImplyLeading: true,
+  iconTheme: const IconThemeData(color: Colors.red),
+
+  flexibleSpace: SafeArea(
+    bottom: false,
+    child: SizedBox.expand(
+      child: Image.asset(
+        'assets/images/banner.jpg', // 👈 your image
+        fit: BoxFit.cover,
       ),
+    ),
+  ),
+),
+
       body: YoutubePlayerBuilder(
         player: YoutubePlayer(
           controller: controller,
