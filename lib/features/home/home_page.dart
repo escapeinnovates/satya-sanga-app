@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -17,11 +16,7 @@ class BookModel {
   final String banner;
   final String pdfPath;
 
-  BookModel({
-    required this.title,
-    required this.banner,
-    required this.pdfPath,
-  });
+  BookModel({required this.title, required this.banner, required this.pdfPath});
 }
 
 // -------------------- HOME SCREEN --------------------
@@ -59,8 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> loadQuoteFromSheet() async {
-    final List<QuoteModel> quotes =
-        await QuoteService.fetchQuotes();
+    final List<QuoteModel> quotes = await QuoteService.fetchQuotes();
 
     if (!mounted) return;
 
@@ -72,7 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    // 🗓️ Get today name (Monday, Tuesday, ...)
     final int weekday = DateTime.now().weekday;
     final List<String> days = [
       'Monday',
@@ -85,24 +78,31 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     final String today = days[weekday - 1];
 
-    // 🔍 Find quote for today
-    final todayQuotes = quotes.where(
-      (q) => q.day.toLowerCase() == today.toLowerCase(),
-    ).toList();
 
-    // 🎯 Use today’s quote or fallback
-    final QuoteModel selectedQuote =
-        todayQuotes.isNotEmpty
-            ? todayQuotes.first
-            : quotes[Random().nextInt(quotes.length)];
+    for (final q in quotes) {
+}
+
+
+
+
+    final QuoteModel todayQuote = quotes.firstWhere(
+      (q) => q.day.trim().toLowerCase() == today.toLowerCase(),
+      orElse: () => QuoteModel(day: '', quote: '', author: ''),
+    );
+
+    if (todayQuote.quote.isEmpty) {
+      setState(() {
+        quote = 'No quote for today';
+        author = '';
+      });
+      return;
+    }
 
     setState(() {
-      quote = selectedQuote.quote;
-      author = selectedQuote.author;
+      quote = todayQuote.quote;
+      author = todayQuote.author;
     });
 
-    debugPrint('✅ TODAY: $today');
-    debugPrint('✅ QUOTE: ${selectedQuote.quote}');
   }
 
   // ---------------- UI ----------------
@@ -119,10 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 🌼 SHUBH VICHAR (FROM GOOGLE SHEET, DAY-WISE)
-            ShubhVicharSection(
-              quote: quote,
-              author: author,
-            ),
+            ShubhVicharSection(quote: quote, author: author),
 
             const SizedBox(height: 20),
 
@@ -145,9 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => const ReadPage(),
-                        ),
+                        MaterialPageRoute(builder: (_) => const ReadPage()),
                       );
                     },
                     child: Text(
@@ -211,19 +206,14 @@ class BookCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
+          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(18)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
             child: Image.asset(
               book.banner,
               height: 190,
@@ -287,7 +277,8 @@ class SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap ??
+      onTap:
+          onTap ??
           () {
             Navigator.push(
               context,
@@ -298,22 +289,13 @@ class SectionCard extends StatelessWidget {
           },
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         elevation: 3,
         child: ListTile(
-          leading: Icon(
-            icon,
-            size: 40,
-            color: Colors.orange.shade800,
-          ),
+          leading: Icon(icon, size: 40, color: Colors.orange.shade800),
           title: Text(
             title,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           trailing: const Icon(Icons.arrow_forward_ios),
         ),

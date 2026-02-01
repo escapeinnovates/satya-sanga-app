@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import 'package:provider/provider.dart';
-import '../../main.dart'; // for LanguageNotifier
+
 
 class VideoPlayerPage extends StatefulWidget {
   final String videoId;

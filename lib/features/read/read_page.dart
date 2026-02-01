@@ -16,6 +16,18 @@ class _ReadPageState extends State<ReadPage> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
 
+  late Future<List<dynamic>> _readItemsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✅ Backend call happens ONLY ONCE when page opens
+    _readItemsFuture = ReadService.fetchAllReadItemsRecursive(
+      DriveConfig.pdfFolderId,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,20 +66,18 @@ class _ReadPageState extends State<ReadPage> {
 
           // 📁 CONTENT
           Expanded(
-            child: FutureBuilder(
-              future: ReadService.fetchAllReadItemsRecursive(
-                DriveConfig.pdfFolderId,
-              ),
+            child: FutureBuilder<List<dynamic>>(
+              future: _readItemsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (!snapshot.hasData || (snapshot.data as List).isEmpty) {
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(child: Text('No books found'));
                 }
 
-                final List items = (snapshot.data as List)
+                final List items = snapshot.data!
                     .where(
                       (item) => item['name'].toString().toLowerCase().contains(
                         _query,
@@ -118,7 +128,6 @@ class _ReadPageState extends State<ReadPage> {
                               ),
                             );
                           } else {
-                            // 🔴 Hide language button
                             UIState.showLanguageButton.value = false;
 
                             Navigator.push(
@@ -128,12 +137,10 @@ class _ReadPageState extends State<ReadPage> {
                                     PDFViewerPage(url: url, title: title),
                               ),
                             ).then((_) {
-                              // 🟢 Show again when user comes back
                               UIState.showLanguageButton.value = true;
                             });
                           }
                         },
-
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

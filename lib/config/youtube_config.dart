@@ -10,6 +10,7 @@ class YouTubeConfig {
   static const String _iosApiKey = "AIzaSyCSHeNK1CRkej3K7VJ59ToCfpoILdadqd4";
 
   static const String channelId = "UCogtnchGlab9CSmWLnhVvtA";
+  
 
   static String get apiKey {
     if (kIsWeb) {

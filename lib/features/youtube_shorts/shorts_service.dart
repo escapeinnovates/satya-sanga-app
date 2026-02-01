@@ -1,45 +1,34 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
-import '../../config/youtube_config.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 class YouTubeService {
-  Future<List<dynamic>> fetchShorts() async {
-    print('1: Starting fetchShorts');
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    print('2: Package Name is: ${YouTubeConfig.apiKey}');
-    final url =
-        'https://www.googleapis.com/youtube/v3/search'
-        '?part=snippet'
-        '&channelId=${YouTubeConfig.channelId}'
-        '&maxResults=25'
-        '&type=video'
-        '&videoDuration=short'
-        '&key=${YouTubeConfig.apiKey}';
+  // 🔁 Choose baseUrl depending on platform
 
-    // Build platform-specific headers
-    Map<String, String> headers = {'Accept': 'application/json'};
+  // Flutter Linux / Windows / macOS
+  final String baseUrl = "http://localhost:4000";
 
-    if (Platform.isAndroid) {
-      headers['X-Android-Package'] =
-          packageInfo.packageName; // Must match Console
-      headers['X-Android-Cert'] =
-          'C2CB1D6B45997BE617DBBD16D48F5A3BAC32BFCC'; // No colons
-    } else if (Platform.isIOS) {
-      headers['X-Ios-Bundle-Identifier'] =
-          packageInfo.packageName; // Must match Console
-    }
+  // Android Emulator
+  // final String baseUrl = "http://10.0.2.2:4000";
 
-    print(url);
-    print(headers);
-    final response = await http.get(Uri.parse(url), headers: headers);
-    print('Response Body: ${response.body}');
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['items'] ?? [];
-    } else {
-      print('Error ${response.statusCode}: ${response.body}');
+  // Real device (same WiFi)
+  // final String baseUrl = "http://<YOUR_LOCAL_IP>:4000";
+
+  Future<List<dynamic>> fetchShorts(String channelId) async {
+    try {
+      final url =
+          "$baseUrl/api/youtube-shorts/shorts?channelId=$channelId";
+
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return List<dynamic>.from(data['items'] ?? []);
+      } else {
+        print("Backend Shorts Error: ${response.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      print("Shorts Service Error: $e");
       return [];
     }
   }

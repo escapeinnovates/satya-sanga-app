@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'dart:io';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import 'config/ui_state.dart';
 import 'app_layout.dart';
@@ -11,8 +13,7 @@ import 'features/audio/audio_page.dart';
 import 'features/youtube_shorts/shorts_page.dart';
 import 'features/read/read_page.dart';
 
-final GlobalKey<ShortsPageState> shortsKey =
-    GlobalKey<ShortsPageState>();
+final GlobalKey<ShortsPageState> shortsKey = GlobalKey<ShortsPageState>();
 
 // ---------------- LANGUAGE PROVIDER ----------------
 
@@ -22,17 +23,24 @@ class LanguageNotifier extends ChangeNotifier {
   Locale get currentLocale => _currentLocale;
 
   void toggleLanguage() {
-    _currentLocale =
-        _currentLocale.languageCode == 'en'
-            ? const Locale('hi')
-            : const Locale('en');
+    _currentLocale = _currentLocale.languageCode == 'en'
+        ? const Locale('hi')
+        : const Locale('en');
     notifyListeners();
   }
 }
 
 // ---------------- MAIN ----------------
 
-void main() {
+Future<void> main() async {
+  // ✅ REQUIRED for plugins like flutter_inappwebview
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // ✅ Android-specific init (safe on iOS too)
+  if (Platform.isAndroid) {
+    await InAppWebViewController.setWebContentsDebuggingEnabled(true);
+  }
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => LanguageNotifier(),
@@ -68,16 +76,12 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final languageNotifier =
-        Provider.of<LanguageNotifier>(context);
+    final languageNotifier = Provider.of<LanguageNotifier>(context);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       locale: languageNotifier.currentLocale,
-      supportedLocales: const [
-        Locale('en'),
-        Locale('hi'),
-      ],
+      supportedLocales: const [Locale('en'), Locale('hi')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -101,8 +105,7 @@ class _MyAppState extends State<MyApp> {
                   bottom: 150,
                   right: 16,
                   child: FloatingActionButton(
-                    onPressed:
-                        languageNotifier.toggleLanguage, // ✅ ONLY toggle
+                    onPressed: languageNotifier.toggleLanguage, // ✅ ONLY toggle
                     backgroundColor: Colors.white,
                     child: Image.asset(
                       'assets/icons/lang_icon.png',

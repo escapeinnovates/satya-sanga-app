@@ -3,7 +3,7 @@ import '../../app_layout.dart';
 import 'read_service.dart';
 import 'PDFViewerPage.dart';
 
-class ReadFolderPage extends StatelessWidget {
+class ReadFolderPage extends StatefulWidget {
   final String folderId;
   final String folderName;
 
@@ -14,17 +14,36 @@ class ReadFolderPage extends StatelessWidget {
   });
 
   @override
+  State<ReadFolderPage> createState() => _ReadFolderPageState();
+}
+
+class _ReadFolderPageState extends State<ReadFolderPage> {
+  late Future<List<dynamic>> _folderItemsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✅ Backend call happens ONCE when page opens
+    _folderItemsFuture = ReadService.fetchReadItems(widget.folderId);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(folderName)),
-      body: FutureBuilder(
-        future: ReadService.fetchReadItems(folderId),
+      appBar: AppBar(title: Text(widget.folderName)),
+      body: FutureBuilder<List<dynamic>>(
+        future: _folderItemsFuture,
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final items = snapshot.data as List;
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text("No files found"));
+          }
+
+          final items = snapshot.data!;
 
           return ListView.builder(
             itemCount: items.length,
@@ -43,11 +62,7 @@ class ReadFolderPage extends StatelessWidget {
                   isFolder ? Icons.arrow_forward_ios : Icons.picture_as_pdf,
                 ),
                 onTap: () {
-                  final isFolder =
-                      item['mimeType'] == 'application/vnd.google-apps.folder';
-
                   if (isFolder) {
-                    // 📁 Open sub-folder
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -58,8 +73,6 @@ class ReadFolderPage extends StatelessWidget {
                       ),
                     );
                   } else {
-                    // 📄 Open PDF (FULL SCREEN, no language button)
-
                     final String url =
                         "https://drive.google.com/uc?export=download&id=${item['id']}";
 
@@ -68,9 +81,13 @@ class ReadFolderPage extends StatelessWidget {
                         .replaceAll('.pdf', '')
                         .replaceAll('.PDF', '');
 
-                    AppLayout.of(
+                    // ✅ Use Navigator, NOT AppLayout
+                    Navigator.push(
                       context,
-                    ).open(PDFViewerPage(url: url, title: title));
+                      MaterialPageRoute(
+                        builder: (_) => PDFViewerPage(url: url, title: title),
+                      ),
+                    );
                   }
                 },
               );

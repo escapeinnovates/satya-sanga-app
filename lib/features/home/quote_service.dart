@@ -3,29 +3,38 @@ import 'package:http/http.dart' as http;
 import 'quote_model.dart';
 
 class QuoteService {
-  static const String _url =
-      'https://opensheet.elk.sh/1k1e0ymzVUYeottVp29J-q37V1ulb6eJi29OgfcrNUvU/Sheet1';
+  // 🔁 Choose correct baseUrl
+
+  // Flutter Linux / Windows / macOS
+  static const String baseUrl = "http://localhost:4000";
+
+  // Android Emulator
+  // static const String baseUrl = "http://10.0.2.2:4000";
+
+  // Real device
+  // static const String baseUrl = "http://<YOUR_LOCAL_IP>:4000";
 
   static Future<List<QuoteModel>> fetchQuotes() async {
     try {
-      final response = await http.get(Uri.parse(_url));
+      final response =
+          await http.get(Uri.parse("$baseUrl/api/sheets/quotes"));
 
       if (response.statusCode != 200) {
-        print('❌ Sheet error: ${response.statusCode}');
+        print("❌ Backend quote error: ${response.statusCode}");
         return [];
       }
 
-      final List<dynamic> jsonList = json.decode(response.body);
+      final data = json.decode(response.body);
+      final List<dynamic> list = data['items'] ?? [];
 
-      final quotes = jsonList
+      final quotes = list
           .map((e) => QuoteModel.fromJson(e))
-          .where((q) => q.quote.isNotEmpty)
+          .where((q) => q.day.trim().isNotEmpty)
           .toList();
 
-      print('✅ Quotes loaded: ${quotes.length}');
       return quotes;
     } catch (e) {
-      print('❌ Quote fetch error: $e');
+      print("❌ QuoteService error: $e");
       return [];
     }
   }

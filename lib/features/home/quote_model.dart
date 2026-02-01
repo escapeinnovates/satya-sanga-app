@@ -11,7 +11,7 @@ class QuoteModel {
 
   factory QuoteModel.fromJson(Map<String, dynamic> json) {
     return QuoteModel(
-      day: json['Day']?.toString().trim() ?? '',
+      day: json['day']?.toString().trim() ?? '',
       quote: json['quote']?.toString().trim() ?? '',
       author: json['author']?.toString().trim() ?? '',
     );

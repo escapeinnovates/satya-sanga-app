@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'audio_service.dart';
 import 'audio_player.dart';
+import '../../config/drive_config.dart';
 
 class BhajansScreen extends StatelessWidget {
   const BhajansScreen({super.key});
@@ -10,7 +11,7 @@ class BhajansScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Bhajans')),
       body: FutureBuilder(
-        future: DriveService.fetchAudios(),
+        future: DriveService.fetchAudios(DriveConfig.folderId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

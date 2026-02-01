@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import './shorts_service.dart';
+import '../../config/youtube_config.dart';
 
 class ShortsPage extends StatefulWidget {
   const ShortsPage({super.key});
@@ -149,7 +150,7 @@ class ShortsPageState extends State<ShortsPage>
     return Scaffold(
       backgroundColor: Colors.black,
       body: FutureBuilder(
-        future: youtubeService.fetchShorts(),
+        future: youtubeService.fetchShorts(YouTubeConfig.channelId),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());

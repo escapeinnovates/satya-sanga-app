@@ -1,74 +1,53 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:package_info_plus/package_info_plus.dart';
-import '../../config/drive_config.dart';
 
 class DriveService {
-  // 🔹 Load root audio folder (Audio tab)
-  static Future<List<dynamic>> fetchAudios() async {
+  // 🔁 Choose baseUrl depending on platform
+
+  // Flutter Linux / Windows / macOS
+  static const String baseUrl = "http://localhost:4000";
+
+  // Android Emulator
+  // static const String baseUrl = "http://10.0.2.2:4000";
+
+  // Real device (same WiFi)
+  // static const String baseUrl = "http://<YOUR_LOCAL_IP>:4000";
+
+  /// 🔊 Load root audio folder (Audio tab)
+  static Future<List<dynamic>> fetchAudios(String folderId) async {
     try {
-      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      final url = "$baseUrl/api/drive-audio/audio-items?folderId=$folderId";
 
-      final url = Uri.parse(
-        "https://www.googleapis.com/drive/v3/files"
-        "?q='${DriveConfig.folderId}'+in+parents+and+(mimeType+contains+'audio/'+or+mimeType='application/vnd.google-apps.folder')"
-        "&fields=files(id,name,mimeType,size)"
-        "&orderBy=folder,name"
-        "&key=${DriveConfig.apiKey}",
-      );
-
-      final headers = {
-        'Accept': 'application/json',
-        'X-Android-Package': packageInfo.packageName,
-        'X-Android-Cert': 'C2CB1D6B45997BE617DBBD16D48F5A3BAC32BFCC',
-      };
-
-      final response = await http.get(url, headers: headers);
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print("data : ${data}");
-        return data['files'] ?? [];
+        return List<dynamic>.from(data['files'] ?? []);
       } else {
-        print("Drive Error: ${response.body}");
+        print("Backend Audio Error: ${response.statusCode}");
         return [];
       }
     } catch (e) {
-      print("Drive Error: $e");
+      print("Audio Service Error: $e");
       return [];
     }
   }
 
-  // 🔹 Load contents of any folder (when user opens a folder)
+  /// 📁 Load contents of any audio folder
   static Future<List<dynamic>> fetchFolderItems(String folderId) async {
     try {
-      PackageInfo packageInfo = await PackageInfo.fromPlatform();
-      final url = Uri.parse(
-        "https://www.googleapis.com/drive/v3/files"
-        "?q='$folderId'+in+parents+and+trashed=false"
-        "&fields=files(id,name,mimeType,size)"
-        "&orderBy=folder,name"
-        "&key=${DriveConfig.apiKey}",
-      );
-      final headers = {
-        'Accept': 'application/json',
-        'X-Android-Package': packageInfo.packageName,
-        'X-Android-Cert': 'C2CB1D6B45997BE617DBBD16D48F5A3BAC32BFCC',
-      };
+      final url = "$baseUrl/api/drive-audio/audio-items?folderId=$folderId";
 
-      final response = await http.get(url, headers: headers);
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print(data);
-        return data['files'] ?? [];
+        return List<dynamic>.from(data['files'] ?? []);
       } else {
-        print("Drive Folder Error: ${response.body}");
         return [];
       }
     } catch (e) {
-      print("Drive Folder Exception: $e");
+      print("Audio Folder Error: $e");
       return [];
     }
   }
