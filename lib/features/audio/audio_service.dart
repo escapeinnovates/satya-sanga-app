@@ -5,7 +5,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../config/drive_config.dart';
 
 class DriveService {
-
   // 🔹 Load root audio folder (Audio tab)
   static Future<List<dynamic>> fetchAudios() async {
     try {
@@ -29,6 +28,7 @@ class DriveService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print("data : ${data}");
         return data['files'] ?? [];
       } else {
         print("Drive Error: ${response.body}");
@@ -43,22 +43,25 @@ class DriveService {
   // 🔹 Load contents of any folder (when user opens a folder)
   static Future<List<dynamic>> fetchFolderItems(String folderId) async {
     try {
-     final url = Uri.parse(
-  "https://www.googleapis.com/drive/v3/files"
-  "?q='$folderId'+in+parents"
-  "&corpora=allDrives"
-  "&supportsAllDrives=true"
-  "&includeItemsFromAllDrives=true"
-  "&fields=files(id,name,mimeType,size)"
-  "&orderBy=folder,name"
-  "&key=${DriveConfig.apiKey}",
-);
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      final url = Uri.parse(
+        "https://www.googleapis.com/drive/v3/files"
+        "?q='$folderId'+in+parents+and+trashed=false"
+        "&fields=files(id,name,mimeType,size)"
+        "&orderBy=folder,name"
+        "&key=${DriveConfig.apiKey}",
+      );
+      final headers = {
+        'Accept': 'application/json',
+        'X-Android-Package': packageInfo.packageName,
+        'X-Android-Cert': 'C2CB1D6B45997BE617DBBD16D48F5A3BAC32BFCC',
+      };
 
-
-      final response = await http.get(url);
+      final response = await http.get(url, headers: headers);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print(data);
         return data['files'] ?? [];
       } else {
         print("Drive Folder Error: ${response.body}");

@@ -32,70 +32,84 @@ class AudioPage extends StatelessWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final audio = audios[index];
+              final bool isFolder =
+                  audio['mimeType'] == 'application/vnd.google-apps.folder';
 
               return Card(
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 4,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
-                 onTap: () {
-  final isFolder =
-      audio['mimeType'] == 'application/vnd.google-apps.folder';
-
-  if (isFolder) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AudioFolderPage(
-          folderId: audio['id'],
-          folderName: audio['name'],
-        ),
-      ),
-    );
-  } else {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AudioPlayerScreen(
-          title: audio['name'],
-          fileId: audio['id'],
-        ),
-      ),
-    );
-  }
-},
+                  onTap: () {
+                    if (isFolder) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AudioFolderPage(
+                            folderId: audio['id'],
+                            folderName: audio['name'],
+                          ),
+                        ),
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AudioPlayerScreen(
+                            title: audio['name'],
+                            fileId: audio['id'],
+                          ),
+                        ),
+                      );
+                    }
+                  },
 
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 16),
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
                     child: Row(
                       children: [
+                        // LEFT ICON
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.orange.shade100,
+                            color: isFolder
+                                ? Colors.blue.shade100
+                                : Colors.orange.shade100,
                             borderRadius: BorderRadius.circular(50),
                           ),
                           padding: const EdgeInsets.all(12),
-                          child: const Icon(
-                            Icons.music_note,
-                            color: Colors.orange,
+                          child: Icon(
+                            isFolder ? Icons.folder : Icons.music_note,
+                            color: isFolder ? Colors.blue : Colors.orange,
                             size: 28,
                           ),
                         ),
+
                         const SizedBox(width: 16),
+
+                        // TITLE
                         Expanded(
                           child: Text(
                             audio['name'],
                             style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const Icon(
-                          Icons.play_circle_fill,
-                          color: Colors.orange,
-                          size: 32,
+
+                        // RIGHT ICON
+                        Icon(
+                          isFolder
+                              ? Icons.arrow_forward_ios_rounded
+                              : Icons.play_circle_fill,
+                          color: isFolder ? Colors.blue : Colors.orange,
+                          size: isFolder ? 22 : 32,
                         ),
                       ],
                     ),

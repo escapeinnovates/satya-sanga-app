@@ -10,6 +10,9 @@ class DriveConfig {
   // 2. The Specific Folder ID where your audios are stored
   static const String folderId = '1ay75QluOW9AXZHl2rsFk-vesqxYWqxEV';
 
+  // 📄 PDF folder (Read tab)
+  static const String pdfFolderId = '12ZwcsOtZW8h3P0KZEyyFMQLuIzm8yoZH';
+
   // 3. Logic to pick the right key based on the device
   static String get apiKey {
     if (kIsWeb) {

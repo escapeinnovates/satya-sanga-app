@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import '../../config/ui_state.dart';
 
 class AudioPlayerScreen extends StatefulWidget {
   final String title;
@@ -22,27 +23,31 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   Duration _position = Duration.zero;
   bool isPlaying = false;
 
+  // ---------------- LIFECYCLE ----------------
+
   @override
   void initState() {
     super.initState();
 
-    _player.setUrl(
-      'https://drive.google.com/uc?id=${widget.fileId}',
-    );
+    // ❌ Hide translate button when audio page opens
+    UIState.showLanguageButton.value = false;
 
-    // Listen total duration
+    // 🎵 Load audio
+    _player.setUrl('https://drive.google.com/uc?id=${widget.fileId}');
+
+    // ⏱ Total duration
     _player.durationStream.listen((d) {
       if (d != null) {
         setState(() => _duration = d);
       }
     });
 
-    // Listen position
+    // ▶️ Current position
     _player.positionStream.listen((p) {
       setState(() => _position = p);
     });
 
-    // Listen play/pause state
+    // ⏯ Play / Pause state
     _player.playerStateStream.listen((state) {
       setState(() => isPlaying = state.playing);
     });
@@ -54,148 +59,167 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     super.dispose();
   }
 
+  // ---------------- HELPERS ----------------
+
   String formatTime(Duration d) {
     final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$minutes:$seconds';
   }
 
- @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Colors.grey.shade100,
-    body: Column(
-      children: [
-        // 🔥 Satya Sang banner at top
-        satyaSangBanner(),
+  // ---------------- UI ----------------
 
-        // 🔥 Audio Player UI
-        Expanded(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      // 🔥 GUARANTEED restore when leaving page
+      onWillPop: () async {
+        UIState.showLanguageButton.value = true;
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade100,
+        body: Column(
+          children: [
+            // 🔥 Banner + Custom Back Button
+            _satyaSangBanner(context),
 
-                  // 🎵 Album Art
-                  Card(
-                    elevation: 6,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Container(
-                      height: 250,
-                      width: 250,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(
-                        Icons.music_note,
-                        size: 120,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // 🎶 Title
-                  Text(
-                    widget.title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // ⏱ Slider
-                  Slider(
-                    activeColor: Colors.black,
-                    inactiveColor: Colors.grey.shade300,
-                    min: 0,
-                    max: _duration.inSeconds.toDouble(),
-                    value: _position.inSeconds
-                        .clamp(0, _duration.inSeconds)
-                        .toDouble(),
-                    onChanged: (value) {
-                      _player.seek(Duration(seconds: value.toInt()));
-                    },
-                  ),
-
-                  // ⏰ Time
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // 🎧 Audio Player UI
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
                     children: [
-                      Text(formatTime(_position)),
-                      Text(formatTime(_duration)),
+                      // 🎵 Album Art
+                      Card(
+                        elevation: 6,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Container(
+                          height: 250,
+                          width: 250,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(
+                            Icons.music_note,
+                            size: 120,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      // 🎶 Title
+                      Text(
+                        widget.title,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // ⏱ Progress Slider
+                      Slider(
+                        activeColor: Colors.black,
+                        inactiveColor: Colors.grey.shade300,
+                        min: 0,
+                        max: _duration.inSeconds.toDouble(),
+                        value: _position.inSeconds
+                            .clamp(0, _duration.inSeconds)
+                            .toDouble(),
+                        onChanged: (value) {
+                          _player.seek(Duration(seconds: value.toInt()));
+                        },
+                      ),
+
+                      // ⏰ Time Labels
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(formatTime(_position)),
+                          Text(formatTime(_duration)),
+                        ],
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      // ▶️ Play / Pause Button
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundColor: Colors.black,
+                        child: IconButton(
+                          iconSize: 50,
+                          color: Colors.white,
+                          icon: Icon(
+                            isPlaying ? Icons.pause : Icons.play_arrow,
+                          ),
+                          onPressed: () {
+                            isPlaying ? _player.pause() : _player.play();
+                          },
+                        ),
+                      ),
                     ],
                   ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                  const SizedBox(height: 30),
+  // ---------------- BANNER ----------------
 
-                  // ▶️ Play / Pause
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Colors.black,
-                    child: IconButton(
-                      iconSize: 50,
-                      color: Colors.white,
-                      icon: Icon(
-                        isPlaying ? Icons.pause : Icons.play_arrow,
-                      ),
-                      onPressed: () {
-                        isPlaying ? _player.pause() : _player.play();
-                      },
-                    ),
-                  ),
-                ],
+  Widget _satyaSangBanner(BuildContext context) {
+    return Stack(
+      children: [
+        // 🖼 Banner Image
+        SizedBox(
+          height: 70,
+          width: double.infinity,
+          child: Image.asset(
+            "assets/images/banner.jpg",
+            fit: BoxFit.cover,
+          ),
+        ),
+
+        // 🔙 Custom Back Button
+        Positioned(
+          left: 15,
+          top: 22,
+          child: GestureDetector(
+            onTap: () {
+              // ✅ Restore translate button BEFORE leaving
+              UIState.showLanguageButton.value = true;
+              Navigator.pop(context);
+            },
+            child: Container(
+              width: 30,
+              height: 30,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF7A00),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.white,
+                size: 16,
               ),
             ),
           ),
         ),
       ],
-    ),
-  );
-}
-
-Widget satyaSangBanner() {
-  return Stack(
-    children: [
-      // 🌼 Banner Image
-      SizedBox(
-        height: 70,
-        width: double.infinity,
-        child: Image.asset(
-          "assets/images/banner.jpg",
-          fit: BoxFit.cover,
-        ),
-      ),
-
-      // 🔴 Floating Back Button (NO SHADOW)
-      Positioned(
-        left: 12,
-        top: 18,
-        child: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            width: 36,
-            height: 36,
-          
-            child: const Icon(
-              Icons.arrow_back,
-              color: Colors.red,
-              size: 22,
-            ),
-          ),
-        ),
-      ),
-    ],
-  );
-}
+    );
+  }
 }

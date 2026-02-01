@@ -1,15 +1,14 @@
-import 'dart:convert';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:satya_sang/features/home/pdf_reader_page.dart';
 
 import '../../main.dart';
+import '../read/read_page.dart';
+import './pdf_reader_page.dart';
 import './section_detail_page.dart';
 import './shubh_vichar_section.dart';
-import '../read/read_page.dart';
+import './quote_service.dart';
+import './quote_model.dart';
 
 // -------------------- BOOK MODEL --------------------
 
@@ -18,7 +17,11 @@ class BookModel {
   final String banner;
   final String pdfPath;
 
-  BookModel({required this.title, required this.banner, required this.pdfPath});
+  BookModel({
+    required this.title,
+    required this.banner,
+    required this.pdfPath,
+  });
 }
 
 // -------------------- HOME SCREEN --------------------
@@ -32,6 +35,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String quote = 'Loading...';
+  String author = '';
 
   final List<BookModel> books = [
     BookModel(
@@ -46,24 +50,62 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
+  // ---------------- LOAD QUOTE FROM GOOGLE SHEET ----------------
+
   @override
   void initState() {
     super.initState();
-    loadQuote();
+    loadQuoteFromSheet();
   }
 
-  Future<void> loadQuote() async {
-    final String response = await rootBundle.loadString(
-      'assets/daily_quotes.json',
-    );
-    final data = json.decode(response);
-    final List<dynamic> quotes = data['quotes'];
-    final randomQuote = quotes[Random().nextInt(quotes.length)];
+  Future<void> loadQuoteFromSheet() async {
+    final List<QuoteModel> quotes =
+        await QuoteService.fetchQuotes();
+
+    if (!mounted) return;
+
+    if (quotes.isEmpty) {
+      setState(() {
+        quote = 'No quote available';
+        author = '';
+      });
+      return;
+    }
+
+    // 🗓️ Get today name (Monday, Tuesday, ...)
+    final int weekday = DateTime.now().weekday;
+    final List<String> days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    final String today = days[weekday - 1];
+
+    // 🔍 Find quote for today
+    final todayQuotes = quotes.where(
+      (q) => q.day.toLowerCase() == today.toLowerCase(),
+    ).toList();
+
+    // 🎯 Use today’s quote or fallback
+    final QuoteModel selectedQuote =
+        todayQuotes.isNotEmpty
+            ? todayQuotes.first
+            : quotes[Random().nextInt(quotes.length)];
 
     setState(() {
-      quote = randomQuote['quote'];
+      quote = selectedQuote.quote;
+      author = selectedQuote.author;
     });
+
+    debugPrint('✅ TODAY: $today');
+    debugPrint('✅ QUOTE: ${selectedQuote.quote}');
   }
+
+  // ---------------- UI ----------------
 
   @override
   Widget build(BuildContext context) {
@@ -76,12 +118,15 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🌼 Banner + Quote
-            ShubhVicharSection(quote: quote),
+            // 🌼 SHUBH VICHAR (FROM GOOGLE SHEET, DAY-WISE)
+            ShubhVicharSection(
+              quote: quote,
+              author: author,
+            ),
 
             const SizedBox(height: 20),
 
-            // 📚 Recommended Reading Header
+            // 📚 Quick Read Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -96,14 +141,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   TextButton(
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) =>
-                              const ReadPage(), // your books grid page
+                          builder: (_) => const ReadPage(),
                         ),
                       );
                     },
@@ -123,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 12),
 
-            // 📖 Horizontal Book Shelf
+            // 📖 Horizontal Book List
             SizedBox(
               height: 325,
               child: ListView.builder(
@@ -136,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // 🧭 Other navigation sections
+            // 🧭 Navigation Section
             SectionCard(
               title: languageNotifier.currentLocale.languageCode == 'en'
                   ? 'All Scriptures'
@@ -163,21 +206,24 @@ class BookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 220,
-      height: 190,
       margin: const EdgeInsets.only(right: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Banner image
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(18)),
             child: Image.asset(
               book.banner,
               height: 190,
@@ -185,7 +231,6 @@ class BookCard extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -198,13 +243,10 @@ class BookCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 const SizedBox(height: 12),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    child: const Text("Read"),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -216,6 +258,7 @@ class BookCard extends StatelessWidget {
                         ),
                       );
                     },
+                    child: const Text("Read"),
                   ),
                 ),
               ],
@@ -227,7 +270,7 @@ class BookCard extends StatelessWidget {
   }
 }
 
-// -------------------- SECTION CARD (NAVIGATION) --------------------
+// -------------------- SECTION CARD --------------------
 
 class SectionCard extends StatelessWidget {
   final String title;
@@ -244,25 +287,33 @@ class SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap:
-          onTap ??
+      onTap: onTap ??
           () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => SectionDetailPage(title: title),
+                builder: (_) => SectionDetailPage(title: title),
               ),
             );
           },
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
         elevation: 3,
         child: ListTile(
-          leading: Icon(icon, size: 40, color: Colors.orange.shade800),
+          leading: Icon(
+            icon,
+            size: 40,
+            color: Colors.orange.shade800,
+          ),
           title: Text(
             title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           trailing: const Icon(Icons.arrow_forward_ios),
         ),
