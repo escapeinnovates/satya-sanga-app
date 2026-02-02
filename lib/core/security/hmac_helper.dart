@@ -1,0 +1,27 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
+
+class HmacHelper {
+  static const String _secret = "satyasang_super_secret_2026";
+
+  static Map<String, String> buildHeaders(
+    String path, {
+    String method = "GET",
+  }) {
+    // ⏱️ SECONDS (must match backend)
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+
+    // 🔐 EXACT SAME PAYLOAD FORMAT AS BACKEND
+    final payload = "$method\n$path\n$timestamp";
+
+    final hmac = Hmac(sha256, utf8.encode(_secret));
+    final signature = hmac.convert(utf8.encode(payload)).toString();
+
+    return {
+      "X-Timestamp": timestamp,
+      "X-Signature": signature,
+      "Accept": "application/json",
+    };
+  }
+}

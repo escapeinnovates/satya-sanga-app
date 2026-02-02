@@ -1,23 +1,20 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:satya_sang/core/security/hmac_helper.dart';
 import 'quote_model.dart';
+import 'package:satya_sang/core/config/api_config.dart';
+
 
 class QuoteService {
-  // 🔁 Choose correct baseUrl
-
-  // Flutter Linux / Windows / macOS
-  static const String baseUrl = "http://localhost:4000";
-
-  // Android Emulator
-  // static const String baseUrl = "http://10.0.2.2:4000";
-
-  // Real device
-  // static const String baseUrl = "http://<YOUR_LOCAL_IP>:4000";
 
   static Future<List<QuoteModel>> fetchQuotes() async {
     try {
-      final response =
-          await http.get(Uri.parse("$baseUrl/api/sheets/quotes"));
+      final path = "/api/sheets/quotes";
+
+      final response = await http.get(
+        Uri.parse("${ApiConfig.baseUrl}$path"),
+        headers: HmacHelper.buildHeaders(path),
+      );
 
       if (response.statusCode != 200) {
         print("❌ Backend quote error: ${response.statusCode}");

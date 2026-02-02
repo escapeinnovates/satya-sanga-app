@@ -1,23 +1,38 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:satya_sang/core/security/hmac_helper.dart';
+import 'package:satya_sang/core/config/api_config.dart';
 
 class PlaylistService {
-  // LOCAL backend (Android emulator)
-  final String baseUrl = "http://localhost:4000";
-
-  // For real device on same WiFi:
-  // final String baseUrl = "http://<YOUR_LOCAL_IP>:4000";
-
   Future<List<dynamic>> fetchPlaylist(String channelId) async {
-    final url = "$baseUrl/api/youtube/playlists?channelId=$channelId";
+    try {
+      // 🔐 Path WITHOUT query params (required for HMAC)
+      const String path = "/api/youtube/playlists";
 
-    final response = await http.get(Uri.parse(url));
+      final Uri url = Uri.parse(
+        "${ApiConfig.baseUrl}$path?channelId=$channelId",
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return List<dynamic>.from(data['items'] ?? []);
-    } else {
-      throw Exception("Failed to load playlists");
+      final response = await http.get(
+        url,
+        headers: HmacHelper.buildHeaders(path),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return List<dynamic>.from(data['items'] ?? []);
+      }
+
+      if (response.statusCode == 401) {
+        print("❌ HMAC validation failed (Playlists)");
+        return [];
+      }
+
+      print("Backend Playlists Error: ${response.statusCode}");
+      return [];
+    } catch (e) {
+      print("Playlist Service Error: $e");
+      return [];
     }
   }
 }
