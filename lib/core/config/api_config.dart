@@ -7,7 +7,7 @@ class ApiConfig {
   static String get baseUrl {
     switch (_env) {
       case 'prod':
-        return "https://api.satyasang.in";
+        return "https://api.satya-sang.com";
 
       case 'local':
       default:
