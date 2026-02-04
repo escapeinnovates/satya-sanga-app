@@ -181,25 +181,23 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   // ---------------- BANNER ----------------
 
   Widget _satyaSangBanner(BuildContext context) {
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+
     return Stack(
       children: [
-        // 🖼 Banner Image
+        // 🖼 Banner Image (status bar + banner height)
         SizedBox(
-          height: 70,
+          height: statusBarHeight + 40,
           width: double.infinity,
-          child: Image.asset(
-            "assets/images/banner.jpg",
-            fit: BoxFit.cover,
-          ),
+          child: Image.asset("assets/images/banner.jpg", fit: BoxFit.cover),
         ),
 
-        // 🔙 Custom Back Button
+        // 🔙 Custom Back Button (pushed below status bar)
         Positioned(
           left: 15,
-          top: 22,
+          top: statusBarHeight + 4,
           child: GestureDetector(
             onTap: () {
-              // ✅ Restore translate button BEFORE leaving
               UIState.showLanguageButton.value = true;
               Navigator.pop(context);
             },

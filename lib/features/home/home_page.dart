@@ -78,12 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     final String today = days[weekday - 1];
 
-
-    for (final q in quotes) {
-}
-
-
-
+    for (final q in quotes) {}
 
     final QuoteModel todayQuote = quotes.firstWhere(
       (q) => q.day.trim().toLowerCase() == today.toLowerCase(),
@@ -102,7 +97,6 @@ class _HomeScreenState extends State<HomeScreen> {
       quote = todayQuote.quote;
       author = todayQuote.author;
     });
-
   }
 
   // ---------------- UI ----------------
@@ -177,9 +171,9 @@ class _HomeScreenState extends State<HomeScreen> {
             // 🧭 Navigation Section
             SectionCard(
               title: languageNotifier.currentLocale.languageCode == 'en'
-                  ? 'All Scriptures'
-                  : 'सभी ग्रंथ',
-              icon: Icons.menu_book,
+                  ? 'Announcements'
+                  : 'घोषणाएँ',
+              icon: Icons.campaign,
             ),
 
             const SizedBox(height: 40),
