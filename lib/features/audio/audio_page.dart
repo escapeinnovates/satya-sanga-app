@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:satya_sang/features/audio/audio_folder_page.dart';
+import 'package:satya_sang/app_layout.dart';
 import 'audio_service.dart';
-import 'audio_player.dart';
-import '../../config/drive_config.dart';
+import 'audio_folder_page.dart';
 
 class AudioPage extends StatelessWidget {
   const AudioPage({super.key});
@@ -10,115 +9,62 @@ class AudioPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: DriveService.fetchAudios(DriveConfig.folderId),
+      future: AudioService.fetchRootFolders(),
+
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.hasError) {
-          return const Center(child: Text('Error loading bhajans'));
+        if (!snapshot.hasData) {
+          return const Center(child: Text("No audio folders found"));
         }
 
-        final audios = snapshot.data as List;
+        final folders = snapshot.data as List;
 
-        if (audios.isEmpty) {
-          return const Center(child: Text('No bhajans found'));
+        if (folders.isEmpty) {
+          return const Center(child: Text("No folders"));
         }
 
-        return Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: ListView.separated(
-            itemCount: audios.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final audio = audios[index];
-              final bool isFolder =
-                  audio['mimeType'] == 'application/vnd.google-apps.folder';
+        return ListView.separated(
+          padding: const EdgeInsets.all(12),
+          itemCount: folders.length,
 
-              return Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 4,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    if (isFolder) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AudioFolderPage(
-                            folderId: audio['id'],
-                            folderName: audio['name'],
-                          ),
-                        ),
-                      );
-                    } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AudioPlayerScreen(
-                            title: audio['name'],
-                            fileId: audio['id'],
-                          ),
-                        ),
-                      );
-                    }
-                  },
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
 
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 16,
-                    ),
-                    child: Row(
-                      children: [
-                        // LEFT ICON
-                        Container(
-                          decoration: BoxDecoration(
-                            color: isFolder
-                                ? Colors.blue.shade100
-                                : Colors.orange.shade100,
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          padding: const EdgeInsets.all(12),
-                          child: Icon(
-                            isFolder ? Icons.folder : Icons.music_note,
-                            color: isFolder ? Colors.blue : Colors.orange,
-                            size: 28,
-                          ),
-                        ),
+          itemBuilder: (context, index) {
+            final folder = folders[index];
 
-                        const SizedBox(width: 16),
+            return Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
 
-                        // TITLE
-                        Expanded(
-                          child: Text(
-                            audio['name'],
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
+              child: ListTile(
+                leading: const Icon(Icons.folder, color: Colors.blue, size: 28),
 
-                        // RIGHT ICON
-                        Icon(
-                          isFolder
-                              ? Icons.arrow_forward_ios_rounded
-                              : Icons.play_circle_fill,
-                          color: isFolder ? Colors.blue : Colors.orange,
-                          size: isFolder ? 22 : 32,
-                        ),
-                      ],
-                    ),
+                title: Text(
+                  folder['name'] ?? "Folder",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              );
-            },
-          ),
+
+                trailing: const Icon(Icons.arrow_forward_ios_rounded),
+
+                onTap: () {
+                  AppLayout.of(context).open(
+                    AudioFolderPage(
+                      folderId: folder['id'],
+                      folderName: folder['name'],
+                    ),
+                  );
+                },
+              ),
+            );
+          },
         );
       },
     );

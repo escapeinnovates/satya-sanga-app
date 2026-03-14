@@ -8,20 +8,19 @@ class HmacHelper {
     String path, {
     String method = "GET",
   }) {
-    // ⏱️ SECONDS (must match backend)
-    final timestamp =
-        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000)
+        .toString();
 
-    // 🔐 EXACT SAME PAYLOAD FORMAT AS BACKEND
     final payload = "$method\n$path\n$timestamp";
 
     final hmac = Hmac(sha256, utf8.encode(_secret));
+
     final signature = hmac.convert(utf8.encode(payload)).toString();
 
     return {
-      "X-Timestamp": timestamp,
-      "X-Signature": signature,
-      "Accept": "application/json",
+      "x-timestamp": timestamp,
+      "x-signature": signature,
+      "accept": "application/json",
     };
   }
 }

@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:satya_sang/app_layout.dart';
 
 import '../../main.dart';
 import '../read/read_page.dart';
-import './pdf_reader_page.dart';
-import './section_detail_page.dart';
 import './shubh_vichar_section.dart';
 import './quote_service.dart';
 import './quote_model.dart';
+import './quick_access_service.dart';
+import './quick_access_model.dart';
+import './read_webview_screen.dart';
+import './audio_player.dart';
+import './video_player_screen.dart';
 
-// -------------------- BOOK MODEL --------------------
+import './announcement_model.dart';
+import './announcement_service.dart';
 
-class BookModel {
-  final String title;
-  final String banner;
-  final String pdfPath;
+import '../../pages/announcements_page.dart';
+import '../../widgets/announcement_modal.dart';
 
-  BookModel({required this.title, required this.banner, required this.pdfPath});
-}
+import 'package:intl/intl.dart';
 
-// -------------------- HOME SCREEN --------------------
+////////////////////////////////////////////////////////
+/// HOME SCREEN
+////////////////////////////////////////////////////////
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -32,60 +36,27 @@ class _HomeScreenState extends State<HomeScreen> {
   String quote = 'Loading...';
   String author = '';
 
-  final List<BookModel> books = [
-    BookModel(
-      title: "Guru Vandana",
-      banner: "assets/images/guru_vandana.jpeg",
-      pdfPath: "assets/read/guru_vandana.pdf",
-    ),
-    BookModel(
-      title: "Hanuman Chalisa",
-      banner: "assets/images/hanuman.jpg",
-      pdfPath: "assets/read/hanuman.pdf",
-    ),
-  ];
-
-  // ---------------- LOAD QUOTE FROM GOOGLE SHEET ----------------
+  List<QuickAccessModel> quickItems = [];
+  List<Announcement> announcements = [];
 
   @override
   void initState() {
     super.initState();
     loadQuoteFromSheet();
+    loadQuickAccess();
+    loadAnnouncements();
   }
 
+  ////////////////////////////////////////////////////////
+  /// LOAD QUOTE
+  ////////////////////////////////////////////////////////
+
   Future<void> loadQuoteFromSheet() async {
-    final List<QuoteModel> quotes = await QuoteService.fetchQuotes();
+    final QuoteModel? todayQuote = await QuoteService.fetchTodayQuote();
 
     if (!mounted) return;
 
-    if (quotes.isEmpty) {
-      setState(() {
-        quote = 'No quote available';
-        author = '';
-      });
-      return;
-    }
-
-    final int weekday = DateTime.now().weekday;
-    final List<String> days = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    final String today = days[weekday - 1];
-
-    for (final q in quotes) {}
-
-    final QuoteModel todayQuote = quotes.firstWhere(
-      (q) => q.day.trim().toLowerCase() == today.toLowerCase(),
-      orElse: () => QuoteModel(day: '', quote: '', author: ''),
-    );
-
-    if (todayQuote.quote.isEmpty) {
+    if (todayQuote == null || todayQuote.content.isEmpty) {
       setState(() {
         quote = 'No quote for today';
         author = '';
@@ -94,12 +65,42 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     setState(() {
-      quote = todayQuote.quote;
+      quote = todayQuote.content;
       author = todayQuote.author;
     });
   }
 
-  // ---------------- UI ----------------
+  ////////////////////////////////////////////////////////
+  /// LOAD QUICK ACCESS
+  ////////////////////////////////////////////////////////
+
+  Future<void> loadQuickAccess() async {
+    final items = await QuickAccessService.fetchQuickAccess();
+
+    if (!mounted) return;
+
+    setState(() {
+      quickItems = items;
+    });
+  }
+
+  ////////////////////////////////////////////////////////
+  /// LOAD ANNOUNCEMENTS
+  ////////////////////////////////////////////////////////
+
+  Future<void> loadAnnouncements() async {
+    final data = await AnnouncementService.getAnnouncements();
+
+    if (!mounted) return;
+
+    setState(() {
+      announcements = data;
+    });
+  }
+
+  ////////////////////////////////////////////////////////
+  /// UI
+  ////////////////////////////////////////////////////////
 
   @override
   Widget build(BuildContext context) {
@@ -112,68 +113,22 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🌼 SHUBH VICHAR (FROM GOOGLE SHEET, DAY-WISE)
+            /// QUOTE
             ShubhVicharSection(quote: quote, author: author),
 
             const SizedBox(height: 20),
 
-            // 📚 Quick Read Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    languageNotifier.currentLocale.languageCode == 'en'
-                        ? "Quick Read"
-                        : "क्विक रीड",
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ReadPage()),
-                      );
-                    },
-                    child: Text(
-                      languageNotifier.currentLocale.languageCode == 'en'
-                          ? "Read More"
-                          : "और पढ़ें",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            /// FEATURED CONTENT
+            FeaturedContentSection(items: quickItems),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
 
-            // 📖 Horizontal Book List
-            SizedBox(
-              height: 325,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                itemCount: books.length,
-                itemBuilder: (context, index) {
-                  return BookCard(book: books[index]);
-                },
-              ),
-            ),
-
-            // 🧭 Navigation Section
-            SectionCard(
+            /// ANNOUNCEMENTS
+            AnnouncementsSection(
               title: languageNotifier.currentLocale.languageCode == 'en'
                   ? 'Announcements'
                   : 'घोषणाएँ',
-              icon: Icons.campaign,
+              announcements: announcements,
             ),
 
             const SizedBox(height: 40),
@@ -184,68 +139,78 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// -------------------- BOOK CARD --------------------
+////////////////////////////////////////////////////////
+/// FEATURED CONTENT SECTION
+////////////////////////////////////////////////////////
 
-class BookCard extends StatelessWidget {
-  final BookModel book;
+class FeaturedContentSection extends StatelessWidget {
+  final List<QuickAccessModel> items;
 
-  const BookCard({super.key, required this.book});
+  const FeaturedContentSection({super.key, required this.items});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 220,
-      margin: const EdgeInsets.only(right: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
-        ],
-      ),
+    if (items.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: Text("No content available")),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-            child: Image.asset(
-              book.banner,
-              height: 190,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
+          /// HEADER
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "FEATURED CONTENT",
+                    style: TextStyle(
+                      fontSize: 10,
+                      letterSpacing: 2,
+                      color: Color(0xFF7A7090),
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    "आज के लिए चुना गया",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Color(0xFFF4EFE6),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+
+              Row(
+                children: [
+                  Text(
+                    "सभी देखें",
+                    style: TextStyle(color: Color(0xFFD4AF37), fontSize: 12),
+                  ),
+                  Icon(Icons.chevron_right, color: Color(0xFFD4AF37)),
+                ],
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  book.title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PDFReaderPage(
-                            title: book.title,
-                            pdfPath: book.pdfPath,
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text("Read"),
-                  ),
-                ),
-              ],
+
+          const SizedBox(height: 12),
+
+          SizedBox(
+            height: 200,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                return QuickAccessCard(item: items[index]);
+              },
             ),
           ),
         ],
@@ -254,45 +219,237 @@ class BookCard extends StatelessWidget {
   }
 }
 
-// -------------------- SECTION CARD --------------------
+////////////////////////////////////////////////////////
+/// QUICK ACCESS CARD
+////////////////////////////////////////////////////////
 
-class SectionCard extends StatelessWidget {
+class QuickAccessCard extends StatelessWidget {
+  final QuickAccessModel item;
+
+  const QuickAccessCard({super.key, required this.item});
+
+  void openContent(BuildContext context) {
+    switch (item.contentType) {
+      case "book":
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ReadWebViewScreen(bookId: item.id)),
+        );
+        break;
+
+      case "audio":
+        AppLayout.of(context).open(
+          AudioPlayerScreen(title: item.title, audioUrl: item.mediaUrl ?? ""),
+        );
+        break;
+
+      case "video":
+        AppLayout.of(context).open(
+          VideoPlayerScreen(title: item.title, videoUrl: item.mediaUrl ?? ""),
+        );
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final image = item.thumbnailUrl ?? item.previewPage ?? item.mediaUrl ?? "";
+
+    final isMedia = item.contentType == "audio" || item.contentType == "video";
+
+    return GestureDetector(
+      onTap: () => openContent(context),
+      child: Container(
+        width: 160,
+        margin: const EdgeInsets.only(right: 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              Positioned.fill(child: Image.network(image, fit: BoxFit.cover)),
+
+              Positioned.fill(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Color(0xF20C0A18),
+                        Color(0x330C0A18),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              if (isMedia)
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD4AF37).withOpacity(.85),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow,
+                      color: Color(0xFF0C0A18),
+                      size: 20,
+                    ),
+                  ),
+                ),
+
+              Positioned(
+                bottom: 12,
+                left: 12,
+                right: 12,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFFF4EFE6),
+                        fontSize: 13,
+                        height: 1.3,
+                      ),
+                    ),
+
+                    if (item.totalPages != null)
+                      Text(
+                        "${item.totalPages} pages",
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFFC4B8D8),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+////////////////////////////////////////////////////////
+/// ANNOUNCEMENTS SECTION
+////////////////////////////////////////////////////////
+
+class AnnouncementsSection extends StatelessWidget {
   final String title;
-  final IconData icon;
-  final VoidCallback? onTap;
+  final List<Announcement> announcements;
 
-  const SectionCard({
+  const AnnouncementsSection({
     super.key,
     required this.title,
-    required this.icon,
-    this.onTap,
+    required this.announcements,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap:
-          onTap ??
-          () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => SectionDetailPage(title: title),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontSize: 18, color: Color(0xFFF4EFE6)),
               ),
-            );
-          },
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        elevation: 3,
-        child: ListTile(
-          leading: Icon(icon, size: 40, color: Colors.orange.shade800),
-          title: Text(
-            title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              GestureDetector(
+                onTap: () {
+                  AppLayout.of(context).open(const AnnouncementsPage());
+                },
+                child: const Row(
+                  children: [
+                    Text(
+                      "सभी देखें",
+                      style: TextStyle(color: Color(0xFFD4AF37), fontSize: 12),
+                    ),
+                    Icon(Icons.chevron_right, color: Color(0xFFD4AF37)),
+                  ],
+                ),
+              ),
+            ],
           ),
-          trailing: const Icon(Icons.arrow_forward_ios),
-        ),
+
+          const SizedBox(height: 10),
+
+          Column(
+            children: announcements.map((ann) {
+              return GestureDetector(
+                onTap: () => showAnnouncementModal(context, ann),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1A36),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFD4AF37).withOpacity(.1),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.orange,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ann.title,
+                              style: const TextStyle(
+                                color: Color(0xFFF4EFE6),
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              ann.publishAt != null
+                                  ? DateFormat(
+                                      'dd MMM yyyy',
+                                    ).format(ann.publishAt!)
+                                  : "",
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF7A7090),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const Icon(Icons.chevron_right, color: Color(0xFF7A7090)),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }

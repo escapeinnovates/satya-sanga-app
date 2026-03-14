@@ -1,99 +1,106 @@
-import 'package:flutter/material.dart';
+// import 'package:flutter/material.dart';
+// import 'package:provider/provider.dart';
+// import '../providers/announcement_provider.dart';
+// import '../pages/announcement_page.dart';
 
+// class DashboardAnnouncements extends StatelessWidget {
+//   const DashboardAnnouncements({super.key});
 
+//   @override
+//   Widget build(BuildContext context) {
 
+//     final provider = Provider.of<AnnouncementProvider>(context);
 
-class SectionDetailPage extends StatefulWidget {
-  final String title;
+//     final announcements = provider.announcements.take(5).toList();
 
-  const SectionDetailPage({super.key, required this.title});
+//     if (announcements.isEmpty) return const SizedBox();
 
-  @override
-  State<SectionDetailPage> createState() => _SectionDetailPageState();
-}
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
 
-class _SectionDetailPageState extends State<SectionDetailPage> {
-  dynamic section;
-  String content = 'Loading...';
-  double _fontSize = 18;
+//         Padding(
+//           padding: const EdgeInsets.symmetric(horizontal: 20),
+//           child: Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               const Text(
+//                 "Announcements",
+//                 style: TextStyle(
+//                   fontSize: 20,
+//                   fontWeight: FontWeight.bold,
+//                 ),
+//               ),
 
-  @override
-  void initState() {
-    super.initState();
+//               TextButton(
+//                 onPressed: () {
+//                   Navigator.push(
+//                     context,
+//                     MaterialPageRoute(
+//                       builder: (_) => const AnnouncementPage(),
+//                     ),
+//                   );
+//                 },
+//                 child: const Text("View All"),
+//               )
+//             ],
+//           ),
+//         ),
 
-  }
+//         const SizedBox(height: 10),
 
+//         SizedBox(
+//           height: 140,
+//           child: ListView.builder(
+//             scrollDirection: Axis.horizontal,
+//             itemCount: announcements.length,
+//             itemBuilder: (context, index) {
 
+//               final ann = announcements[index];
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: Colors.orange.shade800,
-      ),
-      body: section == null
-          ? Center(child: Text(content))
-          : section.containsKey('subsections')
-              ? ListView.builder(
-                  itemCount: section['subsections'].length,
-                  itemBuilder: (context, index) {
-                    var subsection = section['subsections'][index];
-                    return ListTile(
-                      title: Text(subsection['title']),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                SectionDetailPage(title: subsection['title']),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                )
-              : Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      color: Colors.orange.shade50,
-                      child: Row(
-                        children: [
-                          const Icon(Icons.zoom_out),
-                          Expanded(
-                            child: Slider(
-                              min: 14,
-                              max: 36,
-                              divisions: 22,
-                              value: _fontSize,
-                              onChanged: (value) {
-                                setState(() {
-                                  _fontSize = value;
-                                });
-                              },
-                            ),
-                          ),
-                          const Icon(Icons.zoom_in),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          content,
-                          style: TextStyle(
-                            fontSize: _fontSize,
-                            height: 1.8,
-                            fontFamily: 'NotoSansDevanagari',
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-    );
-  }
-}
+//               return Container(
+//                 width: 280,
+//                 margin: const EdgeInsets.only(left: 16),
+//                 child: Card(
+//                   shape: RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.circular(16),
+//                   ),
+//                   elevation: 4,
+//                   child: Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+
+//                       if (ann.bannerImage != null)
+//                         ClipRRect(
+//                           borderRadius: const BorderRadius.vertical(
+//                             top: Radius.circular(16),
+//                           ),
+//                           child: Image.network(
+//                             ann.bannerImage!,
+//                             height: 70,
+//                             width: double.infinity,
+//                             fit: BoxFit.cover,
+//                           ),
+//                         ),
+
+//                       Padding(
+//                         padding: const EdgeInsets.all(10),
+//                         child: Text(
+//                           ann.title,
+//                           style: const TextStyle(
+//                             fontWeight: FontWeight.bold,
+//                             fontSize: 16,
+//                           ),
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               );
+//             },
+//           ),
+//         )
+//       ],
+//     );
+//   }
+// }

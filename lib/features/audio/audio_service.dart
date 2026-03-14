@@ -3,14 +3,16 @@ import 'package:http/http.dart' as http;
 import 'package:satya_sang/core/security/hmac_helper.dart';
 import 'package:satya_sang/core/config/api_config.dart';
 
-class DriveService {
-  /// 🔊 Load root audio folder (Audio tab)
-  static Future<List<dynamic>> fetchAudios(String folderId) async {
-    try {
-      // 🔐 Path WITHOUT query params (required for HMAC)
-      const String path = "/api/drive-audio/audio-items";
+class AudioService {
+  /* ======================================================
+     GET ROOT AUDIO FOLDERS
+  ====================================================== */
 
-      final Uri url = Uri.parse("${ApiConfig.baseUrl}$path?folderId=$folderId");
+  static Future<List<dynamic>> fetchRootFolders() async {
+    try {
+      const String path = "/api/audio/root";
+
+      final Uri url = Uri.parse("${ApiConfig.baseUrl}$path");
 
       final response = await http.get(
         url,
@@ -19,50 +21,45 @@ class DriveService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return List<dynamic>.from(data['files'] ?? []);
+
+        return List<dynamic>.from(data['items'] ?? data['folders'] ?? []);
       }
 
       if (response.statusCode == 401) {
-        print("❌ HMAC validation failed (Audio)");
+        print("❌ HMAC validation failed (Audio Root)");
         return [];
       }
 
-      print("Backend Audio Error: ${response.statusCode}");
+      print("Audio Root API Error: ${response.statusCode}");
       return [];
     } catch (e) {
-      print("Audio Service Error: $e");
+      print("Audio Root Service Error: $e");
       return [];
     }
   }
 
-  /// 📁 Load contents of any audio folder
-  static Future<List<dynamic>> fetchFolderItems(String folderId) async {
-    try {
-      // 🔐 Same endpoint, same HMAC path
-      const String path = "/api/drive-audio/audio-items";
+  /* ======================================================
+     GET FOLDER CONTENT (SUBFOLDERS + AUDIOS)
+  ====================================================== */
 
-      final Uri url = Uri.parse("${ApiConfig.baseUrl}$path?folderId=$folderId");
+  static Future<Map<String, dynamic>> fetchFolder(String folderId) async {
+    const basePath = "/api/audio/folder";
 
-      final response = await http.get(
-        url,
-        headers: HmacHelper.buildHeaders(path),
-      );
+    final path = "$basePath/$folderId";
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return List<dynamic>.from(data['files'] ?? []);
-      }
+    final url = Uri.parse("${ApiConfig.baseUrl}$path");
 
-      if (response.statusCode == 401) {
-        print("❌ HMAC validation failed (Audio Folder)");
-        return [];
-      }
+    final response = await http.get(
+      url,
+      headers: HmacHelper.buildHeaders(path), // FIXED
+    );
 
-      print("Backend Audio Folder Error: ${response.statusCode}");
-      return [];
-    } catch (e) {
-      print("Audio Folder Error: $e");
-      return [];
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      return {"folders": data['folders'] ?? [], "audios": data['audios'] ?? []};
     }
+
+    return {"folders": [], "audios": []};
   }
 }

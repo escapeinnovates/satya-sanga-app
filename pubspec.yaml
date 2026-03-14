@@ -47,11 +47,16 @@ dependencies:
    
   crypto: ^3.0.3
 
-  translator: ^1.0.4+1
+  translator: ^1.0.4+1  
   
   youtube_player_flutter: ^9.0.0
   package_info_plus: ^9.0.0
   syncfusion_flutter_pdfviewer: ^32.1.22
+  webview_flutter: ^4.10.0
+  video_player: ^2.8.2 
+  chewie: ^1.7.5
+  flutter_html: ^3.0.0
+  share_plus: ^7.2.1
   
   
 
@@ -80,11 +85,9 @@ flutter:
   assets:
     - assets/images/logo.jpeg
     - assets/icons/lang_icon.png
-    - assets/read/guru_vandana.pdf
     - assets/images/shubh_vichar.jpeg
     - assets/images/guru_vandana.jpeg
     - assets/images/hanuman.jpg
-    - assets/read/hanuman.pdf
     - assets/images/banner.jpg
 
 

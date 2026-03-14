@@ -29,12 +29,10 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     super.initState();
 
     UIState.showLanguageButton.value = false;
-
     _initAudio();
   }
 
   Future<void> _initAudio() async {
-
     try {
 
       await _player.setUrl(widget.audioUrl);
@@ -42,9 +40,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
       _player.play(); // autoplay
 
       _player.durationStream.listen((d) {
-        if (d != null) {
-          setState(() => _duration = d);
-        }
+        if (d != null) setState(() => _duration = d);
       });
 
       _player.positionStream.listen((p) {
@@ -68,9 +64,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   }
 
   String formatTime(Duration d) {
-    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return "$minutes:$seconds";
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return "$m:$s";
   }
 
   void skipForward() {
@@ -93,7 +89,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
 
-            // Album art
+            // Album Art
             Card(
               elevation: 6,
               shape: RoundedRectangleBorder(
@@ -197,8 +193,10 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                   icon: const Icon(Icons.forward_10),
                   onPressed: skipForward,
                 ),
+
               ],
             ),
+
           ],
         ),
       ),

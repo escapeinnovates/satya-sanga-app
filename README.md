@@ -1,6 +1,7 @@
 # satya_sang
 
 A new Flutter project.
+<!-- flutter run --dart-define=ENV=local -->
 
 ## Getting Started
 

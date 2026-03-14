@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../config/drive_config.dart';
-import '../../config/ui_state.dart';
 import 'read_service.dart';
-import 'read_folder_page.dart';
-import 'PDFViewerPage.dart';
+import './read_webview_screen.dart';
 
 class ReadPage extends StatefulWidget {
   const ReadPage({super.key});
@@ -22,162 +19,92 @@ class _ReadPageState extends State<ReadPage> {
   void initState() {
     super.initState();
 
-    // ✅ Backend call happens ONLY ONCE when page opens
-    _readItemsFuture = ReadService.fetchAllReadItemsRecursive(
-      DriveConfig.pdfFolderId,
-    );
+    // ✅ Load books
+    _readItemsFuture = ReadService.fetchBooks();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      body: Column(
-        children: [
-          // 🔍 SEARCH BAR
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) {
-                setState(() => _query = value.toLowerCase());
-              },
-              decoration: InputDecoration(
-                hintText: 'Search books or folders...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _query.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _query = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+      body: FutureBuilder<List<dynamic>>(
+        future: _readItemsFuture,
+        builder: (context, snapshot) {
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text("No books found"));
+          }
+
+          final items = snapshot.data!
+              .where((item) =>
+                  item['title']
+                      .toString()
+                      .toLowerCase()
+                      .contains(_query.toLowerCase()))
+              .toList();
+
+          return GridView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: items.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 20,
+              childAspectRatio: 0.65,
             ),
-          ),
+            itemBuilder: (context, index) {
 
-          // 📁 CONTENT
-          Expanded(
-            child: FutureBuilder<List<dynamic>>(
-              future: _readItemsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+              final book = items[index];
 
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No books found'));
-                }
+              final title = book['title'] ?? '';
 
-                final List items = snapshot.data!
-                    .where(
-                      (item) => item['name'].toString().toLowerCase().contains(
-                        _query,
+              final coverUrl = book['cover_url'];
+
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ReadWebViewScreen(
+                        bookId: book['id'],
                       ),
-                    )
-                    .toList();
-
-                if (items.isEmpty) {
-                  return const Center(child: Text('No matching results'));
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: GridView.builder(
-                    itemCount: items.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 20,
-                          childAspectRatio: 0.8,
-                        ),
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-
-                      final bool isFolder =
-                          item['mimeType'] ==
-                          'application/vnd.google-apps.folder';
-
-                      final String title = item['name']
-                          .toString()
-                          .replaceAll('.pdf', '')
-                          .replaceAll('.PDF', '');
-
-                      final String url =
-                          "https://drive.google.com/uc?export=download&id=${item['id']}";
-
-                      return GestureDetector(
-                        onTap: () {
-                          if (isFolder) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ReadFolderPage(
-                                  folderId: item['id'],
-                                  folderName: item['name'],
-                                ),
-                              ),
-                            );
-                          } else {
-                            UIState.showLanguageButton.value = false;
-
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    PDFViewerPage(url: url, title: title),
-                              ),
-                            ).then((_) {
-                              UIState.showLanguageButton.value = true;
-                            });
-                          }
-                        },
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              height: 80,
-                              width: 80,
-                              alignment: Alignment.center,
-                              child: Icon(
-                                isFolder ? Icons.folder : Icons.picture_as_pdf,
-                                size: 64,
-                                color: isFolder
-                                    ? Colors.amber.shade700
-                                    : Colors.red,
-                              ),
+                    ),
+                  );
+                },
+                child: Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: coverUrl != null
+                          ? Image.network(
+                              coverUrl,
+                              height: 120,
+                              width: 90,
+                              fit: BoxFit.cover,
+                            )
+                          : Container(
+                              height: 120,
+                              width: 90,
+                              color: Colors.grey.shade300,
+                              child: const Icon(Icons.menu_book),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                height: 1.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

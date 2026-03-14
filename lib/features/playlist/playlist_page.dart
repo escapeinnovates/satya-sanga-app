@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import './playlist_service.dart';
 import '../playlist_video/playlist_video.dart';
 import '../../app_layout.dart';
-import '../../config/youtube_config.dart';
 
 class VideosPage extends StatefulWidget {
   const VideosPage({super.key});
@@ -20,20 +19,21 @@ class _VideosPageState extends State<VideosPage> {
   void initState() {
     super.initState();
 
-    // ✅ API call happens ONLY when VideosPage is created
-    _playlistFuture = playlistService.fetchPlaylist(YouTubeConfig.channelId);
+    // API call happens once
+    _playlistFuture = playlistService.fetchPlaylists();
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<dynamic>>(
       future: _playlistFuture,
+
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final playlists = snapshot.data as List;
+        final playlists = snapshot.data!;
 
         if (playlists.isEmpty) {
           return const Center(child: Text("No playlists found"));
@@ -41,21 +41,26 @@ class _VideosPageState extends State<VideosPage> {
 
         return Container(
           color: Colors.white,
+
           child: GridView.builder(
             padding: const EdgeInsets.all(10),
+
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: 10,
               mainAxisSpacing: 12,
               childAspectRatio: 1.1,
             ),
+
             itemCount: playlists.length,
+
             itemBuilder: (context, index) {
-              final p = playlists[index]['snippet'];
-              final playlistId = playlists[index]['id'];
-              final thumbnail = p['thumbnails']['medium']['url'];
-              final title = p['title'];
-              final count = playlists[index]['contentDetails']['itemCount'];
+              final playlist = playlists[index];
+
+              final int playlistId = playlist['id'];
+              final String thumbnail = playlist['thumbnail_url'] ?? '';
+              final String title = playlist['title'] ?? '';
+              final int count = playlist['video_count'] ?? 0;
 
               return GestureDetector(
                 onTap: () {
@@ -63,6 +68,7 @@ class _VideosPageState extends State<VideosPage> {
                     context,
                   ).open(YoutubePlaylistPage(playlistId: playlistId));
                 },
+
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -73,7 +79,9 @@ class _VideosPageState extends State<VideosPage> {
                         child: Image.network(thumbnail, fit: BoxFit.cover),
                       ),
                     ),
+
                     const SizedBox(height: 6),
+
                     Text(
                       title,
                       maxLines: 2,
@@ -85,7 +93,9 @@ class _VideosPageState extends State<VideosPage> {
                         height: 1.3,
                       ),
                     ),
+
                     const SizedBox(height: 2),
+
                     Text(
                       "$count videos",
                       style: const TextStyle(

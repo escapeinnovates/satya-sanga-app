@@ -3,7 +3,7 @@ import './playlist_video_service.dart';
 import './video_player.dart';
 
 class YoutubePlaylistPage extends StatefulWidget {
-  final String playlistId;
+  final int playlistId;
 
   const YoutubePlaylistPage({super.key, required this.playlistId});
 
@@ -13,6 +13,7 @@ class YoutubePlaylistPage extends StatefulWidget {
 
 class _YoutubePlaylistPageState extends State<YoutubePlaylistPage> {
   final YouTubeService youtubeService = YouTubeService();
+
   List videos = [];
   bool loading = true;
 
@@ -23,8 +24,11 @@ class _YoutubePlaylistPageState extends State<YoutubePlaylistPage> {
   }
 
   void load() async {
-    videos = await youtubeService.fetchPlaylistVideos(widget.playlistId);
-    setState(() => loading = false);
+    videos = await youtubeService.fetchVideos(widget.playlistId);
+
+    setState(() {
+      loading = false;
+    });
   }
 
   @override
@@ -37,19 +41,23 @@ class _YoutubePlaylistPageState extends State<YoutubePlaylistPage> {
       color: Colors.white,
       child: GridView.builder(
         padding: const EdgeInsets.all(6),
+
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 14,
-          childAspectRatio: 1, // makes each tile taller
+          childAspectRatio: 1,
         ),
+
         itemCount: videos.length,
+
         itemBuilder: (context, i) {
-          final v = videos[i]['snippet'];
-          final title = v['title'];
-          final description = v['description'];
-          final thumb = v['thumbnails']['medium']['url'];
-          final videoId = v['resourceId']['videoId'];
+          final video = videos[i];
+
+          final title = video['title'];
+          final description = video['description'];
+          final thumb = video['thumbnail_url'];
+          final videoId = video['youtube_video_id'];
 
           return GestureDetector(
             onTap: () {
@@ -64,6 +72,7 @@ class _YoutubePlaylistPageState extends State<YoutubePlaylistPage> {
                 ),
               );
             },
+
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -75,6 +84,7 @@ class _YoutubePlaylistPageState extends State<YoutubePlaylistPage> {
                       fit: StackFit.expand,
                       children: [
                         Image.network(thumb, fit: BoxFit.cover),
+
                         const Center(
                           child: Icon(
                             Icons.play_circle_fill,
@@ -86,10 +96,12 @@ class _YoutubePlaylistPageState extends State<YoutubePlaylistPage> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 8),
+
                 Text(
-                  v['title'],
-                  maxLines: 3, // allow more lines
+                  title,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 13,

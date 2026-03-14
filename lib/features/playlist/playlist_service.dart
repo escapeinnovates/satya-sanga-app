@@ -4,35 +4,25 @@ import 'package:satya_sang/core/security/hmac_helper.dart';
 import 'package:satya_sang/core/config/api_config.dart';
 
 class PlaylistService {
-  Future<List<dynamic>> fetchPlaylist(String channelId) async {
-    try {
-      // 🔐 Path WITHOUT query params (required for HMAC)
-      const String path = "/api/youtube/playlists";
+  Future<List<dynamic>> fetchPlaylists() async {
 
-      final Uri url = Uri.parse(
-        "${ApiConfig.baseUrl}$path?channelId=$channelId",
-      );
+    const path = "/api/youtube/playlists";
+    print(path);
+    final url = Uri.parse("${ApiConfig.baseUrl}$path");
+    print(url);
 
-      final response = await http.get(
-        url,
-        headers: HmacHelper.buildHeaders(path),
-      );
+    final response = await http.get(
+      url,
+      headers: HmacHelper.buildHeaders(path),
+    );
+    print(response);
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return List<dynamic>.from(data['items'] ?? []);
-      }
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
 
-      if (response.statusCode == 401) {
-        print("❌ HMAC validation failed (Playlists)");
-        return [];
-      }
-
-      print("Backend Playlists Error: ${response.statusCode}");
-      return [];
-    } catch (e) {
-      print("Playlist Service Error: $e");
-      return [];
+      return List<dynamic>.from(data['items'] ?? []);
     }
+
+    return [];
   }
 }

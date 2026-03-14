@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'audio_service.dart'; // Google Drive API service
-import 'audio_player.dart'; // Audio player screen
+import 'package:satya_sang/app_layout.dart';
+import 'audio_service.dart';
+import 'audio_player.dart';
 
-// This page represents ONE folder inside Google Drive
-// Example: Hanuman, Shiva, Ramayan
 class AudioFolderPage extends StatelessWidget {
-  final String folderId; // Google Drive folder ID
-  final String folderName; // Folder name (for navigation)
+  final int folderId;
+  final String folderName;
 
   const AudioFolderPage({
     super.key,
@@ -17,160 +16,92 @@ class AudioFolderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      body: Column(
-        children: [
-          // 🔶 Header Banner with Back Button
-          satyaSangBanner(context),
+      appBar: AppBar(title: Text(folderName)),
 
-          // 🔶 Folder content
-          Expanded(
-            child: FutureBuilder(
-              future: DriveService.fetchFolderItems(folderId),
-              builder: (context, snapshot) {
-                // Loading state
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+      body: FutureBuilder(
+        future: AudioService.fetchFolder(folderId.toString()),
 
-                // No data state
-                if (!snapshot.hasData || (snapshot.data as List).isEmpty) {
-                  return const Center(child: Text('No bhajans found'));
-                }
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-                final items = snapshot.data as List;
+          if (!snapshot.hasData) {
+            return const Center(child: Text("No content"));
+          }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final item = items[index];
+          final data = snapshot.data as Map;
 
-                    // Check if item is folder
-                    final isFolder =
-                        item['mimeType'] ==
-                        'application/vnd.google-apps.folder';
+          final folders = data['folders'] ?? [];
+          final audios = data['audios'] ?? [];
 
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 4,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () {
-                          if (isFolder) {
-                            // 📁 Open sub-folder
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => AudioFolderPage(
-                                  folderId: item['id'],
-                                  folderName: item['name'],
-                                ),
-                              ),
-                            );
-                          } else {
-                            // 🎵 Play audio
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => AudioPlayerScreen(
-                                  title: item['name'],
-                                  fileId: item['id'],
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 16,
-                          ),
-                          child: Row(
-                            children: [
-                              // 🔵 LEFT ICON (folder / music)
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: isFolder
-                                      ? Colors.blue.shade100
-                                      : Colors.orange.shade100,
-                                  borderRadius: BorderRadius.circular(50),
-                                ),
-                                padding: const EdgeInsets.all(12),
-                                child: Icon(
-                                  isFolder ? Icons.folder : Icons.music_note,
-                                  color: isFolder ? Colors.blue : Colors.orange,
-                                  size: 28,
-                                ),
-                              ),
+          final items = [
+            ...folders.map((f) => {"type": "folder", "data": f}),
+            ...audios.map((a) => {"type": "audio", "data": a}),
+          ];
 
-                              const SizedBox(width: 16),
+          if (items.isEmpty) {
+            return const Center(child: Text("Empty folder"));
+          }
 
-                              // 📝 TITLE
-                              Expanded(
-                                child: Text(
-                                  item['name'],
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
+          return ListView.separated(
+            padding: const EdgeInsets.all(12),
+            itemCount: items.length,
 
-                              const SizedBox(
-                                width: 12,
-                              ), // 👈 spacing before right icon
-                              // ▶️ RIGHT ICON
-                              Icon(
-                                isFolder
-                                    ? Icons.arrow_forward_ios_rounded
-                                    : Icons.play_circle_fill,
-                                color: isFolder ? Colors.blue : Colors.orange,
-                                size: isFolder ? 22 : 32,
-                              ),
-                            ],
-                          ),
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+
+            itemBuilder: (context, index) {
+              final item = items[index];
+              final type = item["type"];
+              final data = item["data"];
+
+              if (type == "folder") {
+                return Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.folder, color: Colors.blue),
+
+                    title: Text(data['name'] ?? "Folder"),
+
+                    trailing: const Icon(Icons.arrow_forward_ios),
+
+                    onTap: () {
+                      AppLayout.of(context).open(
+                        AudioFolderPage(
+                          folderId: data['id'],
+                          folderName: data['name'],
                         ),
+                      );
+                    },
+                  ),
+                );
+              }
+
+              return Card(
+                child: ListTile(
+                  leading: const Icon(Icons.music_note, color: Colors.orange),
+
+                  title: Text(data['title'] ?? "Audio"),
+
+                  trailing: const Icon(
+                    Icons.play_circle_fill,
+                    color: Colors.orange,
+                    size: 30,
+                  ),
+
+                  onTap: () {
+                    AppLayout.of(context).open(
+                      AudioPlayerScreen(
+                        title: data['title'],
+                        audioUrl: data['audio_url'],
                       ),
                     );
                   },
-                );
-              },
-            ),
-          ),
-        ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
-}
-
-/// 🔶 Reusable Satya-Sang banner with back arrow
-Widget satyaSangBanner(BuildContext context) {
-  return Stack(
-    children: [
-      // 🌼 Banner Image
-      SizedBox(
-        height: 70,
-        width: double.infinity,
-        child: Image.asset("assets/images/banner.jpg", fit: BoxFit.cover),
-      ),
-
-      // 🔴 Back Button (NO shadow)
-      Positioned(
-        left: 12,
-        top: 18,
-        child: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: SizedBox(
-            width: 36,
-            height: 36,
-            child: const Icon(Icons.arrow_back, color: Colors.red, size: 22),
-          ),
-        ),
-      ),
-    ],
-  );
 }

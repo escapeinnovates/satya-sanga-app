@@ -21,7 +21,7 @@ class ApiConfig {
         }
 
         // Android emulator
-        return "http://10.0.2.2:4000";
+        return "http://192.168.31.207:4000";
     }
   }
 }

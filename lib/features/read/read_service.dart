@@ -5,14 +5,14 @@ import 'package:satya_sang/core/config/api_config.dart';
 
 class ReadService {
 
-  /// 📄 Fetch PDFs + folders inside ONE folder
-  static Future<List<dynamic>> fetchReadItems(String folderId) async {
+  /// 📚 Fetch all books (metadata)
+  static Future<List<dynamic>> fetchBooks() async {
     try {
-      // 🔐 Path WITHOUT query params (important for HMAC)
-      const String path = "/api/drive/read-items";
+
+      const String path = "/api/books";
 
       final Uri url = Uri.parse(
-        "${ApiConfig.baseUrl}$path?folderId=$folderId",
+        "${ApiConfig.baseUrl}$path",
       );
 
       final response = await http.get(
@@ -21,42 +21,26 @@ class ReadService {
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return List<dynamic>.from(data['files'] ?? []);
+        final decoded = json.decode(response.body);
+
+        print("📚 Books response: $decoded");
+
+        return List<dynamic>.from(decoded['data'] ?? []);
       }
 
       if (response.statusCode == 401) {
-        print("❌ HMAC validation failed (ReadService)");
+        print("❌ HMAC validation failed (fetchBooks)");
         return [];
       }
 
-      print("Backend Drive Error: ${response.statusCode}");
+      print("❌ Backend Error (${response.statusCode}): ${response.body}");
       return [];
+
     } catch (e) {
-      print("ReadService Error: $e");
+
+      print("❌ fetchBooks Error: $e");
       return [];
+
     }
-  }
-
-  /// 🔁 Recursive fetch (UI-level only, backend already cached)
-  static Future<List<dynamic>> fetchAllReadItemsRecursive(
-    String folderId,
-  ) async {
-    final List<dynamic> allItems = [];
-
-    final items = await fetchReadItems(folderId);
-
-    for (final item in items) {
-      allItems.add(item);
-
-      if (item['mimeType'] ==
-          'application/vnd.google-apps.folder') {
-        final subItems =
-            await fetchAllReadItemsRecursive(item['id']);
-        allItems.addAll(subItems);
-      }
-    }
-
-    return allItems;
   }
 }
